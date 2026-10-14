@@ -1,0 +1,21 @@
+# dependencies
+node_modules/
+
+# build
+dist/
+*.tsbuildinfo
+
+# Prisma generated client
+src/generated/
+
+# env (keep .env.example and .env.test)
+.env
+.env.*.local
+
+# tests
+coverage/
+
+# OS / editors
+.DS_Store
+.idea/
+*.log
