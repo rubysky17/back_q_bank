@@ -1,3 +1,7 @@
+import { eq } from 'drizzle-orm';
+
+import { examQuestions, questions } from '../src/db/schema';
+import { countAll } from '../src/lib/sql';
 import {
   createTestContext,
   resetDatabase,
@@ -6,7 +10,7 @@ import {
   signInAs,
   singleChoice,
   type TestContext,
-} from './helpers.js';
+} from './helpers';
 
 describe('Host content: topics, questions, exams (e2e)', () => {
   let ctx: TestContext;
@@ -20,14 +24,14 @@ describe('Host content: topics, questions, exams (e2e)', () => {
 
   beforeAll(async () => {
     ctx = await createTestContext();
-    await resetDatabase(ctx.prisma);
+    await resetDatabase(ctx.db);
     hostA = await signInAs(ctx, Role.HOST, 'host-a');
     hostB = await signInAs(ctx, Role.HOST, 'host-b');
     user = await signInAs(ctx, Role.USER);
   });
 
   afterAll(async () => {
-    await ctx.app.close();
+    await ctx.close();
   });
 
   describe('topics and domains', () => {
@@ -225,6 +229,20 @@ describe('Host content: topics, questions, exams (e2e)', () => {
         .expect(200);
       expect(search.body.total).toBe(1);
     });
+    it('searches without caring about case or Vietnamese diacritics', async () => {
+      await ctx.api
+        .post('/questions', hostA.token)
+        .send(singleChoice(topicId, 'Quản lý rủi ro dự án là gì?'))
+        .expect(201);
+      for (const q of ['quan ly rui ro', 'QUẢN LÝ', 'rủi ro']) {
+        const res = await ctx.api
+          .get(`/questions?q=${encodeURIComponent(q)}`, hostA.token)
+          .expect(200);
+        expect(
+          res.body.items.map((i: { content: string }) => i.content),
+        ).toContain('Quản lý rủi ro dự án là gì?');
+      }
+    });
   });
 
   describe('exams', () => {
@@ -412,9 +430,27 @@ describe('Host content: topics, questions, exams (e2e)', () => {
         .send({ title: 'Renamed' })
         .expect(200);
       await ctx.api.delete(`/exams/${examId}`, hostA.token).expect(204);
+      // Sections and placements went with the exam (D1 enforces the cascading foreign keys).
+      const [{ left }] = await ctx.db
+        .select({ left: countAll() })
+        .from(examQuestions)
+        .where(eq(examQuestions.examId, examId));
+      expect(left).toBe(0);
       await ctx.api
         .delete(`/questions/${questionIds[0]}`, hostA.token)
         .expect(204);
     });
+  });
+
+  it('has foreign keys enforced by the database', async () => {
+    await expect(
+      ctx.db.insert(questions).values({
+        ownerId: hostA.id,
+        topicId: '00000000-0000-7000-8000-000000000000',
+        content: 'orphan',
+        searchText: 'orphan',
+        definition: {},
+      }),
+    ).rejects.toThrow();
   });
 });

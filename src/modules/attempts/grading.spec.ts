@@ -1,4 +1,4 @@
-import { type GradedItem, percentOf, summarize } from './grading.js';
+import { type GradedItem, percentOf, summarize } from './grading';
 
 const people = { id: 'd-people', name: 'People' };
 const processDomain = { id: 'd-process', name: 'Process' };

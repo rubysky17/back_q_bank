@@ -5,9 +5,6 @@ node_modules/
 dist/
 *.tsbuildinfo
 
-# Prisma generated client
-src/generated/
-
 # env (keep .env.example and .env.test)
 .env
 .env.*.local
@@ -19,3 +16,7 @@ coverage/
 .DS_Store
 .idea/
 *.log
+
+# Cloudflare (wrangler): local D1, build output, local secrets
+.wrangler/
+.dev.vars*

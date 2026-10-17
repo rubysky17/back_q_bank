@@ -1,6 +1,6 @@
-import { AppError } from '../../../common/errors/app-error.js';
-import { getQuestionTypeHandler } from './index.js';
-import { singleChoiceHandler as handler } from './single-choice.handler.js';
+import { AppError } from '../../../lib/app-error';
+import { getQuestionTypeHandler } from './index';
+import { singleChoiceHandler as handler } from './single-choice.handler';
 
 const validInput = {
   options: [
@@ -16,7 +16,7 @@ function expectBadRequest(fn: () => unknown, code: string) {
   } catch (error) {
     expect(error).toBeInstanceOf(AppError);
     expect((error as AppError).code).toBe(code);
-    expect((error as AppError).getStatus()).toBe(400);
+    expect((error as AppError).status).toBe(400);
     return;
   }
   throw new Error('expected an AppError');

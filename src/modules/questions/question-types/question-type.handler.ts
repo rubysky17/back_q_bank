@@ -1,10 +1,7 @@
 import type { z } from 'zod';
 
-import { AppError } from '../../../common/errors/app-error.js';
-import type {
-  Difficulty,
-  QuestionType,
-} from '../../../generated/prisma/client.js';
+import { AppError } from '../../../lib/app-error';
+import type { Difficulty, QuestionType } from '../../../db/schema';
 
 /**
  * One handler per question type. Adding a type (multiple choice, drag & drop, …) means writing a handler

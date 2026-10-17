@@ -1,13 +1,9 @@
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 
-import { AppError } from '../../../common/errors/app-error.js';
-import { shuffle } from '../../../common/utils/random.js';
-import { QuestionType } from '../../../generated/prisma/client.js';
-import {
-  parseWith,
-  type QuestionTypeHandler,
-} from './question-type.handler.js';
+import { AppError } from '../../../lib/app-error';
+import { shuffle } from '../../../lib/random';
+import { parseWith, type QuestionTypeHandler } from './question-type.handler';
 
 const MIN_OPTIONS = 2;
 const MAX_OPTIONS = 10;
@@ -77,7 +73,7 @@ export const singleChoiceHandler: QuestionTypeHandler<
   SingleChoiceAnswerKey,
   SingleChoiceResponse
 > = {
-  type: QuestionType.SINGLE_CHOICE,
+  type: 'SINGLE_CHOICE',
 
   parseDefinition(input) {
     const parsed = parseWith(

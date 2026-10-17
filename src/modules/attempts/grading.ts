@@ -1,4 +1,4 @@
-import { Difficulty } from '../../generated/prisma/client.js';
+import type { Difficulty } from '../../db/schema';
 
 export interface GradedItem {
   sectionId: string | null;
@@ -47,11 +47,7 @@ function groupBy<K>(items: GradedItem[], key: (item: GradedItem) => K) {
   return groups;
 }
 
-const DIFFICULTY_ORDER: Difficulty[] = [
-  Difficulty.EASY,
-  Difficulty.MEDIUM,
-  Difficulty.HARD,
-];
+const DIFFICULTY_ORDER: Difficulty[] = ['EASY', 'MEDIUM', 'HARD'];
 
 /** Overall result plus per-section / per-domain / per-difficulty breakdowns (strengths & weaknesses). */
 export function summarize(items: GradedItem[]) {

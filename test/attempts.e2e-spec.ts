@@ -1,3 +1,6 @@
+import { eq } from 'drizzle-orm';
+
+import { attempts } from '../src/db/schema';
 import {
   createTestContext,
   optionIds,
@@ -7,7 +10,7 @@ import {
   signInAs,
   singleChoice,
   type TestContext,
-} from './helpers.js';
+} from './helpers';
 
 interface HostQuestion {
   id: string;
@@ -63,7 +66,7 @@ describe('Catalog & test taking (e2e)', () => {
 
   beforeAll(async () => {
     ctx = await createTestContext();
-    await resetDatabase(ctx.prisma);
+    await resetDatabase(ctx.db);
     host = await signInAs(ctx, Role.HOST);
     user = await signInAs(ctx, Role.USER);
     otherUser = await signInAs(ctx, Role.USER, 'other');
@@ -125,7 +128,7 @@ describe('Catalog & test taking (e2e)', () => {
   });
 
   afterAll(async () => {
-    await ctx.app.close();
+    await ctx.close();
   });
 
   it('lists published exams in the catalog without question content', async () => {
@@ -438,10 +441,10 @@ describe('Catalog & test taking (e2e)', () => {
       .expect(200);
 
     // Jump past the deadline (+ grace).
-    await ctx.prisma.attempt.update({
-      where: { id: start.body.id },
-      data: { expiresAt: new Date(Date.now() - 120_000) },
-    });
+    await ctx.db
+      .update(attempts)
+      .set({ expiresAt: new Date(Date.now() - 120_000) })
+      .where(eq(attempts.id, start.body.id));
 
     const late = await ctx.api
       .patch(`/attempts/${start.body.id}/answers`, user.token)
@@ -491,5 +494,66 @@ describe('Catalog & test taking (e2e)', () => {
     expect(res.body.code).toBe('EXAM_HAS_ATTEMPTS');
     await ctx.api.post(`/exams/${examId}/archive`, host.token).expect(200);
     await ctx.api.get(`/catalog/exams/${examId}`, user.token).expect(404);
+  });
+
+  it("handles exams larger than D1's 100-parameter limit in single requests", async () => {
+    const big = await ctx.api
+      .post('/topics', host.token)
+      .send({ name: 'Large topic' })
+      .expect(201);
+    const ids: string[] = [];
+    for (let i = 0; i < 120; i++) {
+      const res = await ctx.api
+        .post('/questions', host.token)
+        .send(singleChoice(big.body.id, `Large Q${i}`))
+        .expect(201);
+      ids.push(res.body.id);
+    }
+    const exam = await ctx.api
+      .post('/exams', host.token)
+      .send({ topicId: big.body.id, title: 'Large exam' })
+      .expect(201);
+    const added = await ctx.api
+      .post(
+        `/exams/${exam.body.id}/sections/${exam.body.sections[0].id}/questions`,
+        host.token,
+      )
+      .send({ questionIds: ids })
+      .expect(201);
+    expect(added.body.questionCount).toBe(120);
+    await ctx.api
+      .post(`/exams/${exam.body.id}/publish`, host.token)
+      .expect(200);
+
+    const attempt = await ctx.api
+      .post(`/catalog/exams/${exam.body.id}/attempts`, user.token)
+      .expect(201);
+    expect(attempt.body.totalQuestions).toBe(120);
+    const answers = attempt.body.questions.map(
+      (q: { id: string; data: { options: { id: string }[] } }) => ({
+        attemptQuestionId: q.id,
+        response: { optionId: q.data.options[0].id },
+        flagged: true,
+      }),
+    );
+    const saved = await ctx.api
+      .patch(`/attempts/${attempt.body.id}/answers`, user.token)
+      .send({ answers })
+      .expect(200);
+    expect(saved.body).toMatchObject({
+      saved: 120,
+      answeredCount: 120,
+      flaggedCount: 120,
+    });
+
+    const result = await ctx.api
+      .post(`/attempts/${attempt.body.id}/submit`, user.token)
+      .expect(200);
+    // Options are not shuffled, so option 0 (the correct one) was picked everywhere.
+    expect(result.body).toMatchObject({
+      score: 120,
+      maxScore: 120,
+      correctCount: 120,
+    });
   });
 });

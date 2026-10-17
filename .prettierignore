@@ -1,4 +1,4 @@
-src/generated/
 dist/
 coverage/
-prisma/migrations/
+drizzle/
+src/worker-configuration.d.ts

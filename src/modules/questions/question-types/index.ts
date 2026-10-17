@@ -1,12 +1,12 @@
-import { AppError } from '../../../common/errors/app-error.js';
-import type { QuestionType } from '../../../generated/prisma/client.js';
-import type { QuestionTypeHandler } from './question-type.handler.js';
-import { singleChoiceHandler } from './single-choice.handler.js';
+import { AppError } from '../../../lib/app-error';
+import type { QuestionType } from '../../../db/schema';
+import type { QuestionTypeHandler } from './question-type.handler';
+import { singleChoiceHandler } from './single-choice.handler';
 
 export type {
   QuestionSnapshot,
   QuestionTypeHandler,
-} from './question-type.handler.js';
+} from './question-type.handler';
 
 const handlers: Partial<
   Record<QuestionType, QuestionTypeHandler<any, any, any, any>>

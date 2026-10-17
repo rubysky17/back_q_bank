@@ -1,0 +1,60 @@
+// Cloudflare Workers config. Designed for the Workers Free plan (10 ms CPU per request, $0).
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // Must match the Worker name in the Cloudflare dashboard.
+  "name": "back-q-bank",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  // node:crypto (refresh tokens, constant-time comparisons).
+  "compatibility_flags": ["nodejs_compat"],
+  // Served at https://back-q-bank.<subdomain>.workers.dev. No preview URLs: previews would share
+  // the production D1 database.
+  "workers_dev": true,
+  "preview_urls": false,
+  // Logs on (they show each request's CPU time in the dashboard); traces off, they cost CPU on
+  // every D1 query.
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true,
+    },
+    "traces": {
+      "enabled": false,
+    },
+  },
+  // Runs the Worker close to the database: most requests make several queries.
+  "placement": {
+    "mode": "smart",
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "qbank",
+      // From `npx wrangler d1 create qbank`.
+      // `wrangler dev` uses a local SQLite copy under .wrangler/, not this database.
+      "database_id": "b54e5860-1399-416b-870c-349b21df3abc",
+      // drizzle-kit writes migrations here; `wrangler d1 migrations apply` runs them.
+      "migrations_dir": "drizzle",
+    },
+  ],
+  // Login/refresh attempts per IP, per Cloudflare location.
+  "ratelimits": [
+    {
+      "name": "AUTH_LIMITER",
+      "namespace_id": "1001",
+      "simple": {
+        "limit": 10,
+        "period": 60,
+      },
+    },
+  ],
+  // Non-secret settings; anything left out uses the defaults in src/env.ts.
+  "vars": {
+    "CORS_ORIGINS": "",
+  },
+  // Production: `npx wrangler secret put <NAME>`. Local: .env (see .env.example).
+  "secrets": {
+    "required": ["ADMIN_EMAIL", "ADMIN_PASSWORD", "JWT_ACCESS_SECRET"],
+  },
+}

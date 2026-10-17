@@ -2,39 +2,62 @@
 
 Backend cho ứng dụng ngân hàng câu hỏi: HOST soạn câu hỏi và đề (ví dụ đề PMP), USER làm bài và xem kết quả. Đợt 1 hỗ trợ **câu hỏi single choice**. Các dạng multiple choice, point choice, drag & drop và tính toán sẽ được thêm sau mà không cần đổi database.
 
+Chạy trên **Cloudflare Workers gói Free ($0/tháng)**.
+
 | Mảng | Công nghệ |
 |---|---|
-| Framework | NestJS 12 (ESM), TypeScript 6 |
-| Database | PostgreSQL 18 (Docker), Prisma ORM 7 + `@prisma/adapter-pg` |
-| Auth | JWT access token 15 phút + refresh token xoay vòng (opaque), argon2id |
-| Validate | class-validator (request), zod (env, định nghĩa câu hỏi) |
-| Docs | Swagger tại `/api/v1/docs` |
-| Test | Vitest + Supertest (e2e chạy trên DB `qbank_test`) |
+| Runtime | Cloudflare Workers (`nodejs_compat`), framework Hono 4 |
+| Database | Cloudflare D1 (SQLite), Drizzle ORM 0.45, migration bằng drizzle-kit |
+| Auth | **Chế độ 1 tài khoản**: email/mật khẩu lấy từ secrets. JWT access token 15 phút + refresh token xoay vòng |
+| Validate | zod |
+| Test | Vitest. E2E chạy app thật trên D1 local, mỗi file test có DB riêng trong bộ nhớ |
 
-> ⚠️ **Đừng nâng lên Prisma 8 hoặc TypeScript 7.** `npm i prisma@latest` hiện kéo về Prisma 8 RC (bỏ `schema.prisma` và `migrate dev`). TypeScript 7 chưa tương thích với Nest CLI và Swagger plugin.
+> ⚠️ **Mỗi request chỉ có 10 ms CPU** (gói Free). Khi viết code mới, xem mục [Giới hạn gói Free](#giới-hạn-gói-free).
 
 ## Chạy local
 
-Yêu cầu: Node ≥ 22, Docker.
+Yêu cầu: Node ≥ 22. Không cần Docker: `wrangler dev` tự tạo D1 local trong `.wrangler/`.
 
 ```bash
-npm install                 # tự chạy `prisma generate`
-cp .env.example .env        # rồi đổi JWT_ACCESS_SECRET (≥ 32 ký tự)
-npm run db:up               # Postgres ở localhost:5433 (tạo sẵn cả DB qbank_test)
-npm run db:migrate          # áp dụng migration + generate client
-npm run db:seed             # admin + tài khoản demo + bộ đề PMP mẫu
-npm run start:dev           # http://localhost:3000/api/v1  ·  docs: /api/v1/docs
+npm install
+cp .env.example .env     # đặt ADMIN_EMAIL, ADMIN_PASSWORD (≥ 12 ký tự), JWT_ACCESS_SECRET (≥ 32 ký tự)
+npm run db:migrate       # tạo bảng trong D1 local
+npm run db:seed          # tài khoản + topic PMP + đề "PMP Mock Test 1"
+npm run dev              # http://localhost:8787/api/v1
 ```
 
-Tài khoản seed (chỉ tạo khi `NODE_ENV` khác `production`, trừ admin):
+`npm run db:reset` xóa D1 local rồi migrate và seed lại từ đầu.
 
-| Role | Email | Mật khẩu |
-|---|---|---|
-| ADMIN | `SEED_ADMIN_EMAIL` trong `.env` (mặc định `admin@qbank.local`) | `SEED_ADMIN_PASSWORD` (mặc định `Admin@123456`) |
-| HOST | `host@qbank.local` | `Host@123456` |
-| USER | `user@qbank.local` | `User@123456` |
+Kết nối từ app mobile khi phát triển:
+- **Android emulator**: `http://10.0.2.2:8787/api/v1`.
+- **Máy thật cắm USB**: `adb reverse tcp:8787 tcp:8787`, rồi dùng `http://localhost:8787/api/v1`.
+- **Máy thật qua Wi-Fi**: chạy `npx wrangler dev --ip 0.0.0.0`, rồi dùng `http://<IP-LAN>:8787/api/v1`.
 
-Seed tạo topic **PMP** với 3 domain (People / Process / Business Environment), 9 câu hỏi và đề đã publish **PMP Mock Test 1** (3 section × 3 câu, 15 phút, đậu 70%). Chạy lại seed không tạo trùng dữ liệu.
+## Deploy lên Cloudflare
+
+Làm một lần:
+
+```bash
+npx wrangler login
+npx wrangler d1 create qbank          # dán database_id in ra vào wrangler.jsonc (d1_databases)
+npx wrangler secret put ADMIN_EMAIL
+npx wrangler secret put ADMIN_PASSWORD
+npx wrangler secret put JWT_ACCESS_SECRET
+npm run db:migrate:remote             # tạo bảng trên D1 production
+ADMIN_EMAIL='…' npm run db:seed:remote  # (tuỳ chọn) dữ liệu mẫu PMP
+```
+
+Sau đó commit và push. Workers Builds chạy `npm run build` (typecheck) rồi `npx wrangler deploy`.
+
+- **Migration không tự chạy khi deploy.** Đổi schema thì chạy `npm run db:migrate:remote` trước khi push. Nếu muốn tự động, đặt Deploy command trên dashboard thành `npm run db:migrate:remote && npx wrangler deploy`; build token khi đó cần quyền sửa D1.
+- **Xem CPU thật:** Dashboard → Workers & Pages → `back-q-bank` → Observability. Mỗi request có `cpuTime`; nên nằm dưới 10 ms.
+
+## Chế độ 1 tài khoản
+
+Chưa có đăng ký hay băm mật khẩu. Chỉ một tài khoản đăng nhập được: `ADMIN_EMAIL` / `ADMIN_PASSWORD` trong secrets (local: `.env`).
+- Lần đăng nhập đầu tiên tự tạo user đó trong DB với role **ADMIN**, làm được mọi việc: soạn câu hỏi, soạn đề, làm bài.
+- Đổi mật khẩu bằng cách đặt lại secret. Đổi `ADMIN_EMAIL` sẽ tạo một user mới; dữ liệu của user cũ vẫn còn.
+- Role và quyền sở hữu (`USER` / `HOST` / `ADMIN`, ngân hàng câu hỏi riêng của từng host) vẫn được giữ trong code, để sau này mở lại nhiều tài khoản mà không phải sửa nghiệp vụ.
 
 ## Khái niệm
 
@@ -48,13 +71,6 @@ Seed tạo topic **PMP** với 3 domain (People / Process / Business Environment
 | **Section** | Phần của đề. Đề nào cũng có ≥ 1 section; đề "không chia phần" dùng 1 section mặc định | 3 section × 60 câu |
 | **Attempt** | Một lượt làm bài. Câu hỏi được chụp lại (snapshot) lúc bắt đầu, nên host sửa câu hỏi sau đó không ảnh hưởng bài đang làm | — |
 
-Role:
-- **USER**: làm bài.
-- **HOST**: soạn câu hỏi và đề của mình.
-- **ADMIN**: thấy mọi thứ và nâng USER lên HOST.
-
-Đăng ký luôn tạo tài khoản USER.
-
 ## Auth cho app mobile
 
 Token trả trong JSON body (không dùng cookie):
@@ -62,7 +78,7 @@ Token trả trong JSON body (không dùng cookie):
 ```jsonc
 // POST /auth/login  { email, password, deviceId?, deviceName?, platform?: "IOS" | "ANDROID" | "WEB" }
 {
-  "user": { "id": "…", "email": "…", "fullName": "…", "role": "USER", "isActive": true, "createdAt": "…" },
+  "user": { "id": "…", "email": "…", "fullName": "…", "role": "ADMIN", "isActive": true, "createdAt": "…" },
   "accessToken": "…",            // gửi kèm header Authorization: Bearer <accessToken>
   "accessTokenExpiresIn": 900,   // giây
   "refreshToken": "…",           // lưu vào SecureStore
@@ -74,24 +90,16 @@ Cách app nên xử lý:
 1. Khi API trả 401, gọi `POST /auth/refresh` với `{ refreshToken }` **đúng một lần**. Nếu nhiều request cùng bị 401, tất cả chờ chung lần refresh đó. Sau đó lưu cặp token mới và gửi lại request.
 2. Nếu chính `/auth/refresh` trả 401 (`REFRESH_TOKEN_INVALID`, `REFRESH_TOKEN_REUSED`) thì đăng xuất.
 3. Refresh token cũ vẫn dùng được thêm 60 giây sau khi xoay vòng, để chịu được việc mất response hoặc retry. Gửi lại token cũ sau 60 giây bị coi là token bị đánh cắp, và cả phiên sẽ bị thu hồi.
-4. Mỗi `deviceId` chỉ giữ một phiên. Logout, khóa tài khoản và đổi role có hiệu lực **ngay lập tức**, vì mỗi request đều kiểm tra phiên trong DB.
-
-Kết nối từ app khi phát triển:
-- **Android emulator**: dùng `http://10.0.2.2:3000/api/v1`.
-- **Máy thật cắm USB**: chạy `adb reverse tcp:3000 tcp:3000`, rồi dùng `http://localhost:3000/api/v1`.
-- **Máy thật qua Wi-Fi**: dùng `http://<IP-LAN>:3000/api/v1`. Server đã listen `0.0.0.0`; nhớ cho phép node qua firewall của macOS.
-- **Bản release APK**: chặn HTTP thường, nên cần HTTPS hoặc bật `usesCleartextTraffic` khi test.
+4. Mỗi `deviceId` chỉ giữ một phiên. Logout có hiệu lực **ngay lập tức**, vì mỗi request đều kiểm tra phiên trong DB.
+5. Login và refresh bị giới hạn 10 lần/phút cho mỗi IP; quá giới hạn trả 429 `TOO_MANY_REQUESTS`.
 
 ## API (`/api/v1`)
-
-Chi tiết từng field xem trên Swagger `/api/v1/docs`.
 
 | Nhóm | Endpoint | Quyền |
 |---|---|---|
 | Health | `GET /health` | public |
-| Auth | `POST /auth/register`, `POST /auth/login`, `POST /auth/refresh` | public (có rate limit) |
-| | `POST /auth/logout`, `GET /auth/me`, `PATCH /auth/password` | đã đăng nhập |
-| Admin | `GET /admin/users`, `PATCH /admin/users/:id/role` (`USER` ↔ `HOST`), `PATCH /admin/users/:id/status` | ADMIN |
+| Auth | `POST /auth/login`, `POST /auth/refresh` | public (có rate limit) |
+| | `POST /auth/logout`, `GET /auth/me` | đã đăng nhập |
 | Topic | `GET /topics`, `GET /topics/:id` | đã đăng nhập |
 | | `POST /topics`, `PATCH`/`DELETE /topics/:id`, `POST /topics/:topicId/domains`, `PATCH`/`DELETE /domains/:id` | HOST, ADMIN (chỉ người tạo được sửa/xóa) |
 | Question | `GET /questions?topicId&domainId&difficulty&type&q`, `POST /questions`, `GET`/`PATCH`/`DELETE /questions/:id` | HOST (của mình), ADMIN |
@@ -100,6 +108,8 @@ Chi tiết từng field xem trên Swagger `/api/v1/docs`.
 | Câu hỏi trong đề | `POST /exams/:id/sections/:sectionId/questions`, `PUT /exams/:id/sections/:sectionId/questions/order`, `PATCH`/`DELETE /exams/:id/questions/:questionId` | như Exam |
 | Catalog | `GET /catalog/exams?topicId&q`, `GET /catalog/exams/:id`, `POST /catalog/exams/:id/attempts` (bắt đầu hoặc tiếp tục bài dở) | đã đăng nhập |
 | Làm bài | `GET /attempts`, `GET /attempts/:id`, `PATCH /attempts/:id/answers` (lưu nhiều câu một lần), `POST /attempts/:id/submit`, `GET /attempts/:id/result`, `GET /attempts/:id/review` | chủ bài làm |
+
+Danh sách có phân trang `?page=1&limit=20` (tối đa 100) và trả về `{ items, total, page, limit }`. Tham số `q` tìm **không phân biệt hoa thường và dấu tiếng Việt**: `quan ly` khớp với "Quản lý".
 
 **Câu hỏi single choice** gồm 2–10 option và đúng 1 option có `isCorrect: true`. Option mới không cần `id`; khi sửa câu hỏi thì giữ nguyên `id` của option cũ.
 
@@ -116,7 +126,7 @@ Chi tiết từng field xem trên Swagger `/api/v1/docs`.
 ```
 
 **Trả lời** (`PATCH /attempts/:id/answers`):
-- Body: `{ "answers": [{ "attemptQuestionId": "…", "response": { "optionId": "…" }, "flagged": false }] }`.
+- Body: `{ "answers": [{ "attemptQuestionId": "…", "response": { "optionId": "…" }, "flagged": false }] }`, tối đa 500 câu một lần (nên gửi ít hơn, xem giới hạn CPU).
 - `response: null` để xóa câu trả lời; bỏ trống field nào thì giữ nguyên giá trị cũ.
 - Bài có giới hạn thời gian: server vẫn nhận câu trả lời thêm 30 giây sau `expiresAt`. Quá thời gian đó, bài tự chấm với các câu đã lưu và chuyển `EXPIRED`.
 - Dùng `serverTime` trong response để đồng bộ đồng hồ đếm ngược.
@@ -132,18 +142,39 @@ Chi tiết từng field xem trên Swagger `/api/v1/docs`.
 Mọi lỗi đều có dạng:
 
 ```json
-{ "statusCode": 409, "code": "EXAM_NOT_EDITABLE", "message": "Only draft exams can be edited; unpublish it first", "details": null }
+{ "statusCode": 409, "code": "EXAM_NOT_EDITABLE", "message": "Only draft exams can be edited; unpublish it first" }
 ```
 
 `message` **luôn là một chuỗi**, có thể hiển thị thẳng cho người dùng. Lỗi validate có thêm `details: [{ field, messages[] }]`.
 
 Các `code` thường gặp:
-- **Validate và auth**: `VALIDATION_ERROR`, `INVALID_CREDENTIALS`, `EMAIL_TAKEN`, `TOKEN_INVALID`, `SESSION_ENDED`, `REFRESH_TOKEN_INVALID`, `REFRESH_TOKEN_REUSED`, `ACCOUNT_DISABLED`, `WRONG_PASSWORD`.
-- **Tài nguyên**: `FORBIDDEN`, `NOT_FOUND`, `TOPIC_EXISTS`, `TOPIC_IN_USE`, `DOMAIN_IN_USE`, `QUESTION_IN_USE`.
-- **Câu hỏi**: `INVALID_QUESTION_DEFINITION`, `QUESTION_TYPE_NOT_SUPPORTED`.
-- **Soạn đề**: `EXAM_NOT_EDITABLE`, `EXAM_NOT_PUBLISHABLE`, `EXAM_HAS_ATTEMPTS`, `LAST_SECTION`, `QUESTIONS_NOT_FOUND`, `QUESTION_TOPIC_MISMATCH`, `QUESTION_ALREADY_IN_EXAM`.
-- **Làm bài**: `INVALID_RESPONSE`, `ATTEMPT_CLOSED`, `ATTEMPT_EXPIRED`, `ATTEMPT_NOT_SUBMITTED`.
-- **Khác**: `TOO_MANY_REQUESTS`.
+- **Validate và auth**: `VALIDATION_ERROR`, `BAD_REQUEST` (JSON hỏng, id sai định dạng), `INVALID_CREDENTIALS`, `UNAUTHORIZED`, `TOKEN_INVALID`, `SESSION_ENDED`, `REFRESH_TOKEN_INVALID`, `REFRESH_TOKEN_REUSED`, `ACCOUNT_DISABLED`, `TOO_MANY_REQUESTS`.
+- **Tài nguyên**: `FORBIDDEN`, `NOT_FOUND`, `TOPIC_EXISTS`, `DOMAIN_EXISTS`, `TOPIC_IN_USE`, `DOMAIN_IN_USE`, `QUESTION_IN_USE`, `ALREADY_EXISTS`, `RESOURCE_IN_USE`.
+- **Câu hỏi**: `INVALID_QUESTION_DEFINITION`, `QUESTION_TYPE_NOT_SUPPORTED`, `DOMAIN_TOPIC_MISMATCH`.
+- **Soạn đề**: `EXAM_NOT_EDITABLE`, `EXAM_NOT_PUBLISHABLE`, `EXAM_HAS_ATTEMPTS`, `LAST_SECTION`, `QUESTIONS_NOT_FOUND`, `QUESTION_TOPIC_MISMATCH`, `QUESTION_ALREADY_IN_EXAM`, `INVALID_ORDER`.
+- **Làm bài**: `INVALID_RESPONSE`, `INVALID_ATTEMPT_QUESTION`, `DUPLICATE_ANSWER`, `ATTEMPT_CLOSED`, `ATTEMPT_EXPIRED`, `ATTEMPT_NOT_SUBMITTED`, `EXAM_EMPTY`.
+- **Khác**: `PAYLOAD_TOO_LARGE` (body > 100 kB).
+
+## Giới hạn gói Free
+
+| Giới hạn | Gói Free | Ghi chú |
+|---|---|---|
+| CPU mỗi request | 10 ms | Thời gian chờ D1 không tính. Thỉnh thoảng vượt được chấp nhận; vượt thường xuyên sẽ bị lỗi 1102 |
+| Request | 100.000/ngày | |
+| D1 | 5 triệu dòng đọc/ngày, 100.000 dòng ghi/ngày, 500 MB/DB | |
+| Truy vấn D1 mỗi request | 50 | |
+| Tham số mỗi câu SQL | 100 | Danh sách dài phải đi qua `json_each` (xem AGENTS.md) |
+
+CPU đo trong workerd local (cùng runtime với production, đã gồm phần phình do chế độ dev; số trên production thường thấp hơn):
+
+| Request | CPU |
+|---|---|
+| Đọc thông thường (`/auth/me`, topics, câu hỏi, đề, bài làm, kết quả) | 3–6,5 ms |
+| Lưu 30 đáp án | khoảng 6 ms |
+| Bắt đầu làm bài, publish đề (30 câu) | khoảng 6,5–8 ms |
+| Lưu 120 đáp án trong một request | khoảng 16 ms. App nên lưu theo từng câu hoặc từng nhóm nhỏ |
+
+Đề rất lớn (trên khoảng 100 câu) có thể đẩy request bắt đầu làm bài vượt 10 ms. Khi đó, các lựa chọn là chia đề nhỏ hơn hoặc lên gói Workers Paid ($5/tháng).
 
 ## Thêm dạng câu hỏi mới
 
@@ -153,15 +184,18 @@ Các `code` thường gặp:
    - `parseResponse`: validate câu trả lời.
    - `grade`: chấm điểm.
 2. Đăng ký handler trong `question-types/index.ts`.
-3. Không cần migration, vì enum `QuestionType` đã có sẵn các dạng.
+3. Không cần migration: cột `type` đã chấp nhận sẵn các dạng.
 
 ## Scripts
 
 | Lệnh | Việc |
 |---|---|
-| `npm run start:dev` | chạy dev, tự reload |
+| `npm run dev` | chạy Worker local (`wrangler dev`) với D1 local |
 | `npm run check` | typecheck + lint + unit test |
-| `npm run test:e2e` | e2e trên DB `qbank_test`: tự áp dụng migration, mỗi file test tự xóa dữ liệu trong DB test |
-| `npm run db:migrate` | tạo/áp dụng migration khi đổi `prisma/schema.prisma` |
-| `npm run db:seed` / `db:studio` | seed dữ liệu / mở Prisma Studio |
-| `npm run build && npm run start:prod` | build và chạy bản production |
+| `npm run test:e2e` | e2e: app thật trên D1 local, mỗi file một DB mới trong bộ nhớ |
+| `npm run db:generate` | tạo migration sau khi sửa `src/db/schema.ts` |
+| `npm run db:migrate` / `db:migrate:remote` | áp migration vào D1 local / production |
+| `npm run db:seed` / `db:seed:remote` | seed dữ liệu mẫu (chạy lại không tạo trùng) |
+| `npm run db:reset` | xóa D1 local, migrate và seed lại |
+| `npm run cf:types` | sinh lại `src/worker-configuration.d.ts` sau khi sửa `wrangler.jsonc` |
+| `npm run deploy` | deploy từ máy (bình thường để Workers Builds deploy khi push) |

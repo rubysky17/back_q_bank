@@ -1,12 +1,10 @@
 import { defineConfig } from 'vitest/config';
 
+// Unit tests: pure logic next to the code (no database).
 export default defineConfig({
-  // Resolves the path aliases declared in tsconfig.json, including the ones
-  // added by `nest g library`. Requires Vite 8, which ships this option.
-  resolve: { tsconfigPaths: true },
   test: {
     globals: true,
     root: './',
-    include: ['**/*.spec.ts'],
+    include: ['src/**/*.spec.ts'],
   },
 });

@@ -1,117 +1,152 @@
+import { eq } from 'drizzle-orm';
+
+import { sessions } from '../src/db/schema';
 import {
   createTestContext,
-  PASSWORD,
   resetDatabase,
-  Role,
-  signInAs,
+  signInAsAdmin,
   type TestContext,
-} from './helpers.js';
+} from './helpers';
 
-describe('Auth & admin (e2e)', () => {
+describe('Auth — single-account mode (e2e)', () => {
   let ctx: TestContext;
 
   beforeAll(async () => {
     ctx = await createTestContext();
-    await resetDatabase(ctx.prisma);
+    await resetDatabase(ctx.db);
   });
 
   afterAll(async () => {
-    await ctx.app.close();
+    await ctx.close();
   });
 
-  describe('register / login', () => {
-    it('registers a USER and returns tokens', async () => {
+  describe('login', () => {
+    it('signs in the configured account as ADMIN and returns tokens', async () => {
       const res = await ctx.api
-        .post('/auth/register')
+        .post('/auth/login')
         .send({
-          email: '  New.User@Example.com ',
-          password: PASSWORD,
-          fullName: 'New User',
+          email: `  ${ctx.config.ADMIN_EMAIL.toUpperCase()} `,
+          password: ctx.config.ADMIN_PASSWORD,
           deviceId: 'device-1',
           platform: 'ANDROID',
         })
-        .expect(201);
+        .expect(200);
       expect(res.body.user).toMatchObject({
-        email: 'new.user@example.com',
-        role: 'USER',
+        email: ctx.config.ADMIN_EMAIL,
+        fullName: 'Test Admin',
+        role: 'ADMIN',
+        isActive: true,
       });
       expect(res.body.user.passwordHash).toBeUndefined();
       expect(res.body.accessTokenExpiresIn).toBe(900);
+      expect(typeof res.body.refreshToken).toBe('string');
 
       const me = await ctx.api
         .get('/auth/me', res.body.accessToken)
         .expect(200);
-      expect(me.body.email).toBe('new.user@example.com');
+      expect(me.body.email).toBe(ctx.config.ADMIN_EMAIL);
     });
 
-    it('rejects a duplicate email', async () => {
-      const res = await ctx.api
-        .post('/auth/register')
-        .send({
-          email: 'new.user@example.com',
-          password: PASSWORD,
-          fullName: 'Dup',
-        })
-        .expect(409);
-      expect(res.body).toMatchObject({ code: 'EMAIL_TAKEN', statusCode: 409 });
-    });
-
-    it('returns validation errors as one string message plus details', async () => {
-      const res = await ctx.api
-        .post('/auth/register')
-        .send({ email: 'not-an-email', password: 'short', role: 'ADMIN' })
-        .expect(400);
-      expect(res.body.code).toBe('VALIDATION_ERROR');
-      expect(typeof res.body.message).toBe('string');
-      const fields = res.body.details.map((d: { field: string }) => d.field);
-      expect(fields).toEqual(
-        expect.arrayContaining(['email', 'password', 'fullName', 'role']),
-      );
+    it('reuses the same user row on every sign-in', async () => {
+      const first = await signInAsAdmin(ctx);
+      const second = await signInAsAdmin(ctx);
+      expect(second.id).toBe(first.id);
     });
 
     it('uses the same error for a wrong password and an unknown email', async () => {
       const wrong = await ctx.api
         .post('/auth/login')
-        .send({ email: 'new.user@example.com', password: 'WrongPass123' })
+        .send({ email: ctx.config.ADMIN_EMAIL, password: 'WrongPass123' })
         .expect(401);
       const unknown = await ctx.api
         .post('/auth/login')
-        .send({ email: 'nobody@example.com', password: 'WrongPass123' })
+        .send({
+          email: 'nobody@example.com',
+          password: ctx.config.ADMIN_PASSWORD,
+        })
         .expect(401);
       expect(wrong.body.code).toBe('INVALID_CREDENTIALS');
       expect(unknown.body).toEqual(wrong.body);
     });
 
+    it('returns validation errors as one string message plus details', async () => {
+      const res = await ctx.api
+        .post('/auth/login')
+        .send({ email: 'not-an-email', role: 'ADMIN' })
+        .expect(400);
+      expect(res.body.code).toBe('VALIDATION_ERROR');
+      expect(typeof res.body.message).toBe('string');
+      const fields = res.body.details.map((d: { field: string }) => d.field);
+      expect(fields).toEqual(
+        expect.arrayContaining(['email', 'password', 'role']),
+      );
+    });
+
+    it('rejects a body that is not JSON', async () => {
+      const res = await ctx.api.post('/auth/login').raw('{nope').expect(400);
+      expect(res.body).toMatchObject({
+        code: 'BAD_REQUEST',
+        message: 'Request body is not valid JSON',
+      });
+    });
+
+    it('has no registration endpoint', async () => {
+      const res = await ctx.api
+        .post('/auth/register')
+        .send({
+          email: 'x@example.com',
+          password: 'Passw0rd!123',
+          fullName: 'X',
+        })
+        .expect(404);
+      expect(res.body.code).toBe('NOT_FOUND');
+    });
+
+    it('is rate limited per IP when the binding says so', async () => {
+      const limited = ctx.apiWith({
+        AUTH_LIMITER: { limit: async () => ({ success: false }) },
+      });
+      const res = await limited
+        .post('/auth/login')
+        .send({
+          email: ctx.config.ADMIN_EMAIL,
+          password: ctx.config.ADMIN_PASSWORD,
+        })
+        .expect(429);
+      expect(res.body.code).toBe('TOO_MANY_REQUESTS');
+    });
+
     it('requires a token on protected routes', async () => {
       const res = await ctx.api.get('/auth/me').expect(401);
       expect(res.body.code).toBe('UNAUTHORIZED');
-      await ctx.api.get('/auth/me', 'garbage').expect(401);
+      const garbage = await ctx.api.get('/auth/me', 'garbage').expect(401);
+      expect(garbage.body.code).toBe('TOKEN_INVALID');
     });
   });
 
   describe('refresh token rotation', () => {
     it('rotates, tolerates a retry within the grace window and detects reuse after it', async () => {
-      const user = await signInAs(ctx, Role.USER);
+      const admin = await signInAsAdmin(ctx);
 
       const first = await ctx.api
         .post('/auth/refresh')
-        .send({ refreshToken: user.refreshToken })
+        .send({ refreshToken: admin.refreshToken })
         .expect(200);
-      expect(first.body.refreshToken).not.toBe(user.refreshToken);
-      expect(first.body.user.id).toBe(user.id);
+      expect(first.body.refreshToken).not.toBe(admin.refreshToken);
+      expect(first.body.user.id).toBe(admin.id);
 
       // Same old token again right away (lost response / concurrent refresh): still accepted.
       const retry = await ctx.api
         .post('/auth/refresh')
-        .send({ refreshToken: user.refreshToken })
+        .send({ refreshToken: admin.refreshToken })
         .expect(200);
 
       // Pretend the last rotation happened 2 minutes ago, then replay the previous token.
-      const sessionId = user.refreshToken.split('.')[0];
-      await ctx.prisma.session.update({
-        where: { id: sessionId },
-        data: { rotatedAt: new Date(Date.now() - 120_000) },
-      });
+      const sessionId = admin.refreshToken.split('.')[0];
+      await ctx.db
+        .update(sessions)
+        .set({ rotatedAt: new Date(Date.now() - 120_000) })
+        .where(eq(sessions.id, sessionId));
       const replay = await ctx.api
         .post('/auth/refresh')
         .send({ refreshToken: first.body.refreshToken })
@@ -140,119 +175,50 @@ describe('Auth & admin (e2e)', () => {
 
   describe('sessions', () => {
     it('logout ends the session immediately', async () => {
-      const user = await signInAs(ctx, Role.USER);
-      await ctx.api.post('/auth/logout', user.token).expect(204);
-      await ctx.api.get('/auth/me', user.token).expect(401);
+      const admin = await signInAsAdmin(ctx);
+      await ctx.api.post('/auth/logout', admin.token).expect(204);
+      await ctx.api.get('/auth/me', admin.token).expect(401);
       await ctx.api
         .post('/auth/refresh')
-        .send({ refreshToken: user.refreshToken })
+        .send({ refreshToken: admin.refreshToken })
         .expect(401);
     });
 
     it('signing in again on the same device replaces the old session', async () => {
-      const user = await signInAs(ctx, Role.USER);
-      const login = () =>
-        ctx.api
-          .post('/auth/login')
-          .send({ email: user.email, password: PASSWORD, deviceId: 'phone-1' })
-          .expect(200);
-      const first = await login();
-      const second = await login();
-      await ctx.api.get('/auth/me', first.body.accessToken).expect(401);
-      await ctx.api.get('/auth/me', second.body.accessToken).expect(200);
-    });
-
-    it('changing the password signs out the other devices only', async () => {
-      const user = await signInAs(ctx, Role.USER);
-      const other = await ctx.api
-        .post('/auth/login')
-        .send({ email: user.email, password: PASSWORD, deviceId: 'tablet' })
-        .expect(200);
-
-      const wrong = await ctx.api
-        .patch('/auth/password', user.token)
-        .send({ currentPassword: 'nope-nope', newPassword: 'NewPassw0rd!' })
-        .expect(400);
-      expect(wrong.body.code).toBe('WRONG_PASSWORD');
-
-      await ctx.api
-        .patch('/auth/password', user.token)
-        .send({ currentPassword: PASSWORD, newPassword: 'NewPassw0rd!' })
-        .expect(204);
-      await ctx.api.get('/auth/me', user.token).expect(200);
-      await ctx.api.get('/auth/me', other.body.accessToken).expect(401);
-      await ctx.api
-        .post('/auth/login')
-        .send({ email: user.email, password: 'NewPassw0rd!' })
-        .expect(200);
+      const first = await signInAsAdmin(ctx, { deviceId: 'phone-1' });
+      const second = await signInAsAdmin(ctx, { deviceId: 'phone-1' });
+      await ctx.api.get('/auth/me', first.token).expect(401);
+      await ctx.api.get('/auth/me', second.token).expect(200);
     });
   });
 
-  describe('admin', () => {
-    it('only admins can list users', async () => {
-      const user = await signInAs(ctx, Role.USER);
-      const host = await signInAs(ctx, Role.HOST);
-      const admin = await signInAs(ctx, Role.ADMIN);
-      await ctx.api.get('/admin/users', user.token).expect(403);
-      await ctx.api.get('/admin/users', host.token).expect(403);
+  describe('platform', () => {
+    it('reports health with a database round trip', async () => {
+      const res = await ctx.api.get('/health').expect(200);
+      expect(res.body).toMatchObject({ status: 'ok', database: 'up' });
+    });
 
+    it('describes itself at the root URL', async () => {
+      const res = await ctx.app.request('/', {}, ctx.env);
+      expect(res.status).toBe(200);
+      expect(await res.json()).toMatchObject({
+        api: '/api/v1',
+        health: '/api/v1/health',
+      });
+    });
+
+    it('answers unknown routes with the standard error body', async () => {
+      const res = await ctx.api.get('/nope').expect(404);
+      expect(res.body).toMatchObject({ statusCode: 404, code: 'NOT_FOUND' });
+    });
+
+    it('rejects bodies over 100 kB', async () => {
+      const admin = await signInAsAdmin(ctx);
       const res = await ctx.api
-        .get(
-          `/admin/users?role=HOST&q=${encodeURIComponent(host.email)}`,
-          admin.token,
-        )
-        .expect(200);
-      expect(res.body).toMatchObject({ total: 1, page: 1, limit: 20 });
-      expect(res.body.items[0].id).toBe(host.id);
-    });
-
-    it('promotion to HOST applies to the very next request', async () => {
-      const user = await signInAs(ctx, Role.USER);
-      const admin = await signInAs(ctx, Role.ADMIN);
-      const topic = { name: `Topic ${user.id}` };
-
-      await ctx.api.post('/topics', user.token).send(topic).expect(403);
-      const promoted = await ctx.api
-        .patch(`/admin/users/${user.id}/role`, admin.token)
-        .send({ role: 'HOST' })
-        .expect(200);
-      expect(promoted.body.role).toBe('HOST');
-      await ctx.api.post('/topics', user.token).send(topic).expect(201);
-    });
-
-    it('cannot change admins, itself, or grant ADMIN', async () => {
-      const admin = await signInAs(ctx, Role.ADMIN);
-      const otherAdmin = await signInAs(ctx, Role.ADMIN);
-      const user = await signInAs(ctx, Role.USER);
-
-      await ctx.api
-        .patch(`/admin/users/${otherAdmin.id}/role`, admin.token)
-        .send({ role: 'USER' })
-        .expect(403);
-      const self = await ctx.api
-        .patch(`/admin/users/${admin.id}/status`, admin.token)
-        .send({ isActive: false })
-        .expect(400);
-      expect(self.body.code).toBe('CANNOT_MODIFY_SELF');
-      await ctx.api
-        .patch(`/admin/users/${user.id}/role`, admin.token)
-        .send({ role: 'ADMIN' })
-        .expect(400);
-    });
-
-    it('disabling an account signs it out and blocks login', async () => {
-      const admin = await signInAs(ctx, Role.ADMIN);
-      const user = await signInAs(ctx, Role.USER);
-      await ctx.api
-        .patch(`/admin/users/${user.id}/status`, admin.token)
-        .send({ isActive: false })
-        .expect(200);
-      await ctx.api.get('/auth/me', user.token).expect(401);
-      const login = await ctx.api
-        .post('/auth/login')
-        .send({ email: user.email, password: PASSWORD })
-        .expect(403);
-      expect(login.body.code).toBe('ACCOUNT_DISABLED');
+        .post('/topics', admin.token)
+        .send({ name: 'Big', description: 'x'.repeat(110 * 1024) })
+        .expect(413);
+      expect(res.body.code).toBe('PAYLOAD_TOO_LARGE');
     });
   });
 });
