@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, isNull, lt, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, isNull, lt, ne, or, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { batch, type Db } from '../../db/client';
@@ -28,6 +28,9 @@ import { type GradedItem, percentOf, summarize } from './grading';
 /** Answers are still accepted this long after `expiresAt` to absorb network latency. */
 export const ANSWER_GRACE_MS = 30_000;
 
+/** Longest stretch credited to one answer pick; anything longer is idle time. */
+export const MAX_ANSWER_TIME_MS = 10 * 60_000;
+
 /** Columns of the partial unique index "one in-progress attempt per user and exam". */
 const IN_PROGRESS_INDEX_COLUMNS = 'Attempt.userId, Attempt.examId';
 
@@ -47,6 +50,8 @@ export const saveAnswersSchema = z.strictObject({
         response: z.record(z.string(), z.unknown()).nullable().optional(),
         /** "Mark for review". Omit to keep the current flag. */
         flagged: z.boolean().optional(),
+        /** Foreground ms since the question appeared (or since the last pick). Added to the question's total; counted only with `response`. */
+        timeSpentMs: z.number().int().min(0).optional(),
       }),
     )
     .min(1)
@@ -360,6 +365,11 @@ export async function saveAnswers(
         answeredAt: response === null ? null : now,
         setFlag,
         flagged: answer.flagged ?? false,
+        // Always a number so the SQL never adds NULL; clamped rather than rejected so a long pause
+        // can't cost the user their answer.
+        timeSpentMs: setResponse
+          ? Math.min(answer.timeSpentMs ?? 0, MAX_ANSWER_TIME_MS)
+          : 0,
       },
     ];
   });
@@ -371,10 +381,12 @@ export async function saveAnswers(
       UPDATE "AttemptQuestion" SET
         "response" = CASE WHEN v.setResponse THEN v.response ELSE "AttemptQuestion"."response" END,
         "answeredAt" = CASE WHEN v.setResponse THEN v.answeredAt ELSE "AttemptQuestion"."answeredAt" END,
-        "flagged" = CASE WHEN v.setFlag THEN v.flagged ELSE "AttemptQuestion"."flagged" END
+        "flagged" = CASE WHEN v.setFlag THEN v.flagged ELSE "AttemptQuestion"."flagged" END,
+        "timeSpentMs" = "AttemptQuestion"."timeSpentMs" + v.timeSpentMs
       FROM (SELECT value ->> 'id' AS id, value ->> 'setResponse' AS setResponse,
                    value ->> 'response' AS response, value ->> 'answeredAt' AS answeredAt,
-                   value ->> 'setFlag' AS setFlag, value ->> 'flagged' AS flagged
+                   value ->> 'setFlag' AS setFlag, value ->> 'flagged' AS flagged,
+                   value ->> 'timeSpentMs' AS timeSpentMs
             FROM json_each(${JSON.stringify(changes)})) AS v
       WHERE "AttemptQuestion"."id" = v.id AND "AttemptQuestion"."attemptId" = ${attemptId}
         AND EXISTS (SELECT 1 FROM "Attempt" WHERE "Attempt"."id" = ${attemptId}
@@ -549,6 +561,40 @@ export async function findInProgress(db: Db, userId: string, examId: string) {
     return null;
   }
   return attempt;
+}
+
+/**
+ * Closes overdue attempts and grades closed ones that missed grading, so statistics see final scores.
+ * Capped per request because grading is the CPU-heavy part; callers still filter `score IS NOT NULL`,
+ * and anything skipped is settled by a later request.
+ */
+export async function settleClosedAttempts(
+  db: Db,
+  userId: string,
+  examIds?: readonly string[],
+  limit = 2,
+) {
+  const pending = await db
+    .select({ id: attempts.id, status: attempts.status })
+    .from(attempts)
+    .where(
+      and(
+        eq(attempts.userId, userId),
+        examIds ? inList(attempts.examId, examIds) : undefined,
+        or(
+          and(
+            eq(attempts.status, 'IN_PROGRESS'),
+            lt(attempts.expiresAt, new Date(Date.now() - ANSWER_GRACE_MS)),
+          ),
+          and(ne(attempts.status, 'IN_PROGRESS'), isNull(attempts.score)),
+        ),
+      ),
+    )
+    .limit(limit);
+  for (const { id, status } of pending) {
+    if (status === 'IN_PROGRESS') await finalize(db, id, 'EXPIRED');
+    else await grade(db, id);
+  }
 }
 
 /**

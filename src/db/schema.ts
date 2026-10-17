@@ -366,6 +366,12 @@ export const attempts = sqliteTable(
   (t) => [
     index('Attempt_userId_startedAt_idx').on(t.userId, t.startedAt),
     index('Attempt_examId_idx').on(t.examId),
+    /** Reports: one user's attempts on a few exams. */
+    index('Attempt_userId_examId_startedAt_idx').on(
+      t.userId,
+      t.examId,
+      t.startedAt,
+    ),
     /** At most one in-progress attempt per user and exam. */
     uniqueIndex('Attempt_one_in_progress_per_user_exam')
       .on(t.userId, t.examId)
@@ -407,6 +413,8 @@ export const attemptQuestions = sqliteTable(
     score: integer(),
     flagged: bool().notNull().default(false),
     answeredAt: timestamp(),
+    /** Foreground ms the app measured before each answer pick, summed. 0 = recorded before timing existed. */
+    timeSpentMs: integer().notNull().default(0),
   },
   (t) => [
     uniqueIndex('AttemptQuestion_attemptId_order_key').on(t.attemptId, t.order),
