@@ -165,12 +165,15 @@ function createApi(env: Env) {
 /** Empties every table (children first, so foreign keys never block). */
 export async function resetDatabase(db: Db) {
   const tables = [
+    'AttemptEvent',
+    'AttemptSection',
     'AttemptQuestion',
     'Attempt',
     'ExamQuestion',
     'ExamSection',
     'Exam',
     'Question',
+    'CaseStudy',
     'Domain',
     'Topic',
     'Session',

@@ -5,17 +5,21 @@ import { batch, type Db } from '../../db/client';
 import { isUniqueViolation } from '../../db/errors';
 import {
   ATTEMPT_STATUSES,
+  attemptEvents,
   attemptQuestions,
   attempts,
+  attemptSections,
+  type AttemptSectionStatus,
   type Difficulty,
   exams,
+  type QuestionMedia,
   type QuestionType,
 } from '../../db/schema';
 import type { AuthUser } from '../../lib/access';
 import { AppError } from '../../lib/app-error';
 import { offsetOf, paginated } from '../../lib/pagination';
 import { shuffle } from '../../lib/random';
-import { countAll, inList } from '../../lib/sql';
+import { countAll, inList, qualified } from '../../lib/sql';
 import { uuidv7 } from '../../lib/uuidv7';
 import { paginationFields, zId } from '../../lib/validation';
 import { loadSections } from '../exams/service';
@@ -47,11 +51,21 @@ export const saveAnswersSchema = z.strictObject({
         response: z.record(z.string(), z.unknown()).nullable().optional(),
         /** "Mark for review". Omit to keep the current flag. */
         flagged: z.boolean().optional(),
+        /** Foreground time spent on the question since the last save; added to its total. */
+        timeSpentMs: z.number().int().min(0).optional(),
       }),
     )
     .min(1)
     .max(500),
 });
+
+/** `fresh: true` abandons the attempt in progress (kept in history and reports) and starts a new one. */
+export const startAttemptSchema = z.strictObject({
+  fresh: z.boolean().optional(),
+});
+
+/** Longest time credited to one question per save (the app applies the same cap). */
+const MAX_DWELL_MS = 10 * 60_000;
 
 type ListAttemptsQuery = z.infer<typeof listAttemptsQuery>;
 type SaveAnswersInput = z.infer<typeof saveAnswersSchema>;
@@ -62,10 +76,16 @@ const attemptColumns = {
   userId: attempts.userId,
   examTitle: attempts.examTitle,
   status: attempts.status,
+  mode: attempts.mode,
+  phase: attempts.phase,
+  currentSectionOrder: attempts.currentSectionOrder,
+  syncedSeq: attempts.syncedSeq,
   passingScore: attempts.passingScore,
+  breakMinutes: attempts.breakMinutes,
   startedAt: attempts.startedAt,
   expiresAt: attempts.expiresAt,
   submittedAt: attempts.submittedAt,
+  abandonedAt: attempts.abandonedAt,
   score: attempts.score,
   maxScore: attempts.maxScore,
   correctCount: attempts.correctCount,
@@ -77,7 +97,7 @@ function selectAttempts(db: Db) {
   return db.select(attemptColumns).from(attempts);
 }
 
-type AttemptRow = Awaited<ReturnType<typeof selectAttempts>>[number];
+export type AttemptRow = Awaited<ReturnType<typeof selectAttempts>>[number];
 
 function isOverdue(
   attempt: Pick<AttemptRow, 'status' | 'expiresAt'>,
@@ -90,7 +110,7 @@ function isOverdue(
   );
 }
 
-const closedError = () =>
+export const closedError = () =>
   AppError.conflict(
     'ATTEMPT_CLOSED',
     'This attempt has already been submitted',
@@ -98,14 +118,14 @@ const closedError = () =>
 
 const asSnapshot = (value: unknown) => value as QuestionSnapshot;
 
-const parseJson = (value: unknown) =>
+export const parseJson = (value: unknown) =>
   typeof value === 'string' ? (JSON.parse(value) as unknown) : value;
 
 /**
  * Parts of the snapshot read straight from its JSON text. D1 rows are decoded in JavaScript, so
  * reading only the fields a request needs (instead of whole snapshots) is the main CPU saving.
  */
-const snapshotField = {
+export const snapshotField = {
   type: sql<QuestionType>`${attemptQuestions.snapshot} ->> '$.type'`,
   content: sql<string>`${attemptQuestions.snapshot} ->> '$.content'`,
   difficulty: sql<Difficulty>`${attemptQuestions.snapshot} ->> '$.difficulty'`,
@@ -119,18 +139,45 @@ const snapshotField = {
     sql`${attemptQuestions.snapshot} ->> '$.domain'`.mapWith(
       (value) => parseJson(value) as QuestionSnapshot['domain'],
     ),
+  caseStudy: () =>
+    sql`${attemptQuestions.snapshot} ->> '$.caseStudy'`.mapWith(
+      (value) => (parseJson(value) ?? null) as ViewQuestion['caseStudy'],
+    ),
+  /** Only the images shown with the stem; explanation images wait for the review. */
+  contentMedia: () =>
+    sql`${attemptQuestions.snapshot} ->> '$.media'`.mapWith((value) =>
+      contentMediaOf(parseJson(value) as QuestionMedia[] | null),
+    ),
+  sourceNumber: sql<
+    number | null
+  >`${attemptQuestions.snapshot} ->> '$.sourceNumber'`,
 };
+
+const contentMediaOf = (media: QuestionMedia[] | null | undefined) =>
+  (media ?? []).filter((item) => item.placement === 'CONTENT');
 
 /**
  * Starts an attempt on a published exam, or resumes the one in progress (double taps and app restarts
  * land on the same attempt). Questions are frozen into snapshots so later edits by the host don't matter.
+ *
+ * With `fresh`, the attempt in progress is closed as ABANDONED first (graded on its next read, which
+ * keeps this request within the CPU budget) and a new one starts.
+ *
+ * When every section has its own `durationMinutes`, the attempt is SECTIONED: no server deadline; the
+ * app runs each section clock (paused while the user is away) and uploads its state with `sync`.
  */
-export async function startAttempt(db: Db, user: AuthUser, examId: string) {
+export async function startAttempt(
+  db: Db,
+  user: AuthUser,
+  examId: string,
+  options: z.infer<typeof startAttemptSchema> = {},
+) {
   const [exam] = await db
     .select({
       id: exams.id,
       title: exams.title,
       durationMinutes: exams.durationMinutes,
+      breakMinutes: exams.breakMinutes,
       passingScore: exams.passingScore,
       shuffleQuestions: exams.shuffleQuestions,
       shuffleOptions: exams.shuffleOptions,
@@ -140,14 +187,23 @@ export async function startAttempt(db: Db, user: AuthUser, examId: string) {
   if (!exam) throw AppError.notFound('Exam');
 
   const resumable = await findInProgress(db, user.id, examId);
-  if (resumable) return { resumed: true, ...(await view(db, resumable.id)) };
+  if (resumable) {
+    if (!options.fresh) {
+      return { resumed: true, ...(await view(db, resumable.id)) };
+    }
+    await close(db, resumable.id, 'ABANDONED');
+  }
 
+  const plannedSections = await loadSections(db, examId);
+  const sectioned =
+    plannedSections.length > 0 &&
+    plannedSections.every((section) => section.durationMinutes !== null);
   let order = 0;
-  const rows = (await loadSections(db, examId)).flatMap((section) => {
+  const rows = plannedSections.flatMap((section) => {
     const items = exam.shuffleQuestions
       ? shuffle(section.questions)
       : section.questions;
-    return items.map(({ points, question }) => {
+    return items.map(({ points, sourceNumber, question }) => {
       const handler = getQuestionTypeHandler(question.type);
       const { data, answerKey } = handler.buildSnapshot(
         handler.parseDefinition(question.definition),
@@ -159,6 +215,9 @@ export async function startAttempt(db: Db, user: AuthUser, examId: string) {
         explanation: question.explanation,
         difficulty: question.difficulty,
         domain: question.domain,
+        caseStudy: question.caseStudy,
+        media: question.media,
+        sourceNumber,
         data,
         answerKey,
       };
@@ -185,12 +244,19 @@ export async function startAttempt(db: Db, user: AuthUser, examId: string) {
     examId,
     examTitle: exam.title,
     status: 'IN_PROGRESS',
+    mode: sectioned ? 'SECTIONED' : 'LEGACY',
+    phase: sectioned ? 'NOT_STARTED' : null,
+    currentSectionOrder: sectioned ? plannedSections[0].order : null,
+    syncedSeq: 0,
     passingScore: exam.passingScore,
+    breakMinutes: sectioned ? exam.breakMinutes : null,
     startedAt: now,
-    expiresAt: exam.durationMinutes
-      ? new Date(now.getTime() + exam.durationMinutes * 60_000)
-      : null,
+    expiresAt:
+      !sectioned && exam.durationMinutes
+        ? new Date(now.getTime() + exam.durationMinutes * 60_000)
+        : null,
     submittedAt: null,
+    abandonedAt: null,
     score: null,
     maxScore: rows.reduce((sum, row) => sum + row.points, 0),
     correctCount: null,
@@ -198,11 +264,41 @@ export async function startAttempt(db: Db, user: AuthUser, examId: string) {
     passed: null,
   };
   const attemptId = attempt.id;
+  const sectionRows: AttemptSectionView[] = sectioned
+    ? plannedSections
+        .filter((section) => section.questions.length > 0)
+        .map((section) => ({
+          id: uuidv7(),
+          sectionId: section.id,
+          sectionOrder: section.order,
+          budgetMs: section.durationMinutes! * 60_000,
+          usedMs: 0,
+          status: 'LOCKED' as AttemptSectionStatus,
+          startedAt: null,
+          endedAt: null,
+          endReason: null,
+          breakTakenMs: null,
+          breakSkipped: null,
+        }))
+    : [];
   try {
     // One batch: the attempt never exists without its questions. The questions go in through one
     // JSON parameter (D1 allows 100 bound parameters per statement).
     await batch(db, [
       db.insert(attempts).values({ ...attempt, userId: user.id }),
+      ...(sectionRows.length > 0
+        ? [
+            db.insert(attemptSections).values(
+              sectionRows.map(({ id, sectionId, sectionOrder, budgetMs }) => ({
+                id,
+                attemptId,
+                sectionId,
+                sectionOrder,
+                budgetMs,
+              })),
+            ),
+          ]
+        : []),
       db.run(sql`
         INSERT INTO "AttemptQuestion" ("id", "attemptId", "questionId", "questionVersion", "sectionId",
           "sectionTitle", "sectionOrder", "order", "points", "snapshot", "flagged")
@@ -243,11 +339,16 @@ export async function startAttempt(db: Db, user: AuthUser, examId: string) {
           response: null,
           flagged: false,
           answeredAt: null,
+          ...EMPTY_TRACE,
           type: snapshot.type,
           content: snapshot.content,
+          caseStudy: snapshot.caseStudy ?? null,
+          media: contentMediaOf(snapshot.media),
+          sourceNumber: snapshot.sourceNumber ?? null,
           data: snapshot.data,
         }),
       ),
+      sectionRows,
     ),
   };
 }
@@ -263,7 +364,12 @@ export async function listAttempts(
     query.examId ? eq(attempts.examId, query.examId) : undefined,
     query.status ? eq(attempts.status, query.status) : undefined,
   );
-  const rows = await selectAttempts(db)
+  const rows = await db
+    .select({
+      ...attemptColumns,
+      answeredCount: sql<number>`(SELECT count(*) FROM ${attemptQuestions} WHERE ${qualified(attemptQuestions.attemptId)} = ${qualified(attempts.id)} AND ${qualified(attemptQuestions.response)} IS NOT NULL)`,
+    })
+    .from(attempts)
     .where(where)
     .orderBy(desc(attempts.startedAt), desc(attempts.id))
     .limit(query.limit)
@@ -297,6 +403,12 @@ export async function saveAnswers(
 ) {
   const attempt = await findOwned(db, user, attemptId);
   if (attempt.status !== 'IN_PROGRESS') throw closedError();
+  if (attempt.mode === 'SECTIONED') {
+    throw AppError.conflict(
+      'ATTEMPT_SECTIONED',
+      'This attempt is saved with POST /attempts/:id/sync',
+    );
+  }
   if (isOverdue(attempt)) {
     await finalize(db, attempt.id, 'EXPIRED');
     throw AppError.conflict(
@@ -342,7 +454,8 @@ export async function saveAnswers(
   const changes = input.answers.flatMap((answer) => {
     const setResponse = answer.response !== undefined;
     const setFlag = answer.flagged !== undefined;
-    if (!setResponse && !setFlag) return [];
+    const addTime = Math.min(answer.timeSpentMs ?? 0, MAX_DWELL_MS);
+    if (!setResponse && !setFlag && addTime === 0) return [];
     let response: unknown = null;
     if (answer.response) {
       const snapshot = snapshots.get(answer.attemptQuestionId)!;
@@ -360,6 +473,7 @@ export async function saveAnswers(
         answeredAt: response === null ? null : now,
         setFlag,
         flagged: answer.flagged ?? false,
+        addTime,
       },
     ];
   });
@@ -371,10 +485,13 @@ export async function saveAnswers(
       UPDATE "AttemptQuestion" SET
         "response" = CASE WHEN v.setResponse THEN v.response ELSE "AttemptQuestion"."response" END,
         "answeredAt" = CASE WHEN v.setResponse THEN v.answeredAt ELSE "AttemptQuestion"."answeredAt" END,
-        "flagged" = CASE WHEN v.setFlag THEN v.flagged ELSE "AttemptQuestion"."flagged" END
+        "flagged" = CASE WHEN v.setFlag THEN v.flagged ELSE "AttemptQuestion"."flagged" END,
+        "dwellMs" = CASE WHEN v.addTime > 0 THEN coalesce("AttemptQuestion"."dwellMs", 0) + v.addTime
+                         ELSE "AttemptQuestion"."dwellMs" END
       FROM (SELECT value ->> 'id' AS id, value ->> 'setResponse' AS setResponse,
                    value ->> 'response' AS response, value ->> 'answeredAt' AS answeredAt,
-                   value ->> 'setFlag' AS setFlag, value ->> 'flagged' AS flagged
+                   value ->> 'setFlag' AS setFlag, value ->> 'flagged' AS flagged,
+                   value ->> 'addTime' AS addTime
             FROM json_each(${JSON.stringify(changes)})) AS v
       WHERE "AttemptQuestion"."id" = v.id AND "AttemptQuestion"."attemptId" = ${attemptId}
         AND EXISTS (SELECT 1 FROM "Attempt" WHERE "Attempt"."id" = ${attemptId}
@@ -398,9 +515,30 @@ export async function saveAnswers(
   };
 }
 
-/** Idempotent: submitting again (e.g. a retry after a lost response) returns the same result. */
+/**
+ * Idempotent: submitting again (e.g. a retry after a lost response) returns the same result.
+ * A SECTIONED attempt must first upload its ATTEMPT_SUBMIT event, so no answer made offline is lost.
+ */
 export async function submitAttempt(db: Db, user: AuthUser, attemptId: string) {
   const attempt = await findOwned(db, user, attemptId);
+  if (attempt.status === 'IN_PROGRESS' && attempt.mode === 'SECTIONED') {
+    const [submitted] = await db
+      .select({ id: attemptEvents.id })
+      .from(attemptEvents)
+      .where(
+        and(
+          eq(attemptEvents.attemptId, attemptId),
+          eq(attemptEvents.type, 'ATTEMPT_SUBMIT'),
+        ),
+      )
+      .limit(1);
+    if (!submitted) {
+      throw AppError.conflict(
+        'ATTEMPT_NOT_SYNCED',
+        'Upload the attempt with sync before submitting it',
+      );
+    }
+  }
   if (attempt.status === 'IN_PROGRESS') {
     await finalize(
       db,
@@ -409,6 +547,27 @@ export async function submitAttempt(db: Db, user: AuthUser, attemptId: string) {
     );
   }
   return attemptResult(db, user, attemptId);
+}
+
+/**
+ * The user gave up on the attempt (or started the exam over). What was answered is graded and stays
+ * in history and reports; it never counts as a pass or fail. Idempotent.
+ */
+export async function abandonAttempt(
+  db: Db,
+  user: AuthUser,
+  attemptId: string,
+) {
+  const attempt = await findOwned(db, user, attemptId);
+  if (attempt.status === 'IN_PROGRESS') {
+    await finalize(db, attempt.id, 'ABANDONED');
+  }
+  const closed = await findOwned(db, user, attemptId);
+  return {
+    attemptId,
+    status: closed.status,
+    abandonedAt: closed.abandonedAt,
+  };
 }
 
 export async function attemptResult(db: Db, user: AuthUser, attemptId: string) {
@@ -441,6 +600,10 @@ export async function attemptResult(db: Db, user: AuthUser, attemptId: string) {
     };
   });
   const { overall, sections, domains, difficulties } = summarize(items);
+  const timing =
+    attempt.mode === 'SECTIONED'
+      ? await loadAttemptSections(db, attemptId)
+      : [];
 
   return {
     attemptId: attempt.id,
@@ -449,11 +612,18 @@ export async function attemptResult(db: Db, user: AuthUser, attemptId: string) {
     status: attempt.status,
     startedAt: attempt.startedAt,
     submittedAt: attempt.submittedAt,
-    timeSpentSeconds: attempt.submittedAt
-      ? Math.round(
-          (attempt.submittedAt.getTime() - attempt.startedAt.getTime()) / 1000,
-        )
-      : null,
+    mode: attempt.mode,
+    abandonedAt: attempt.abandonedAt,
+    timeSpentSeconds:
+      attempt.mode === 'SECTIONED'
+        ? Math.round(timing.reduce((sum, s) => sum + s.usedMs, 0) / 1000)
+        : attempt.submittedAt
+          ? Math.round(
+              (attempt.submittedAt.getTime() - attempt.startedAt.getTime()) /
+                1000,
+            )
+          : null,
+    sectionTiming: timing,
     score: overall.score,
     maxScore: overall.maxScore,
     percent: overall.percent,
@@ -481,6 +651,7 @@ export async function attemptReview(db: Db, user: AuthUser, attemptId: string) {
       isCorrect: attemptQuestions.isCorrect,
       response: attemptQuestions.response,
       flagged: attemptQuestions.flagged,
+      ...traceColumns,
       snapshot: attemptQuestions.snapshot,
     })
     .from(attemptQuestions)
@@ -491,12 +662,16 @@ export async function attemptReview(db: Db, user: AuthUser, attemptId: string) {
     examId: attempt.examId,
     examTitle: attempt.examTitle,
     status: attempt.status,
+    mode: attempt.mode,
     questions: questions.map(({ snapshot, ...question }) => {
       const {
         type,
         content,
         difficulty,
         domain,
+        caseStudy,
+        media,
+        sourceNumber,
         data,
         answerKey,
         explanation,
@@ -507,6 +682,9 @@ export async function attemptReview(db: Db, user: AuthUser, attemptId: string) {
         content,
         difficulty,
         domain,
+        caseStudy: caseStudy ?? null,
+        media: media ?? [],
+        sourceNumber: sourceNumber ?? null,
         data,
         answerKey,
         explanation,
@@ -556,17 +734,25 @@ export async function findInProgress(db: Db, userId: string, examId: string) {
  * submit, submit racing with expiry) agree on a single winner; from that moment saveAnswers can no
  * longer change any response, which makes grading deterministic and safe to repeat.
  */
-async function finalize(
-  db: Db,
-  attemptId: string,
-  status: 'SUBMITTED' | 'EXPIRED',
-) {
+async function finalize(db: Db, attemptId: string, status: ClosedStatus) {
+  if (await close(db, attemptId, status)) await grade(db, attemptId);
+}
+
+type ClosedStatus = 'SUBMITTED' | 'EXPIRED' | 'ABANDONED';
+
+/** The conditional IN_PROGRESS → closed update alone; true for the one caller that won. */
+async function close(db: Db, attemptId: string, status: ClosedStatus) {
+  const now = new Date();
   const closed = await db
     .update(attempts)
-    .set({ status, submittedAt: new Date() })
+    .set(
+      status === 'ABANDONED'
+        ? { status, abandonedAt: now, phase: null }
+        : { status, submittedAt: now },
+    )
     .where(and(eq(attempts.id, attemptId), eq(attempts.status, 'IN_PROGRESS')))
     .returning({ id: attempts.id });
-  if (closed.length === 1) await grade(db, attemptId);
+  return closed.length === 1;
 }
 
 /**
@@ -576,6 +762,7 @@ async function finalize(
 async function grade(db: Db, attemptId: string) {
   const [attempt] = await db
     .select({
+      status: attempts.status,
       maxScore: attempts.maxScore,
       passingScore: attempts.passingScore,
     })
@@ -626,8 +813,11 @@ async function grade(db: Db, attemptId: string) {
     .set({
       score,
       correctCount: graded.filter((item) => item.isCorrect).length,
+      // An abandoned attempt is unfinished: it never passes or fails.
       passed:
-        attempt.passingScore === null ? null : percent >= attempt.passingScore,
+        attempt.passingScore === null || attempt.status === 'ABANDONED'
+          ? null
+          : percent >= attempt.passingScore,
     })
     .where(and(eq(attempts.id, attemptId), isNull(attempts.score)));
   await db.batch([
@@ -644,6 +834,10 @@ async function grade(db: Db, attemptId: string) {
 async function view(db: Db, attemptId: string) {
   const [attempt] = await selectAttempts(db).where(eq(attempts.id, attemptId));
   if (!attempt) throw AppError.notFound('Attempt');
+  const sections =
+    attempt.mode === 'SECTIONED'
+      ? await loadAttemptSections(db, attemptId)
+      : [];
   const questions = await db
     .select({
       id: attemptQuestions.id,
@@ -655,18 +849,78 @@ async function view(db: Db, attemptId: string) {
       response: attemptQuestions.response,
       flagged: attemptQuestions.flagged,
       answeredAt: attemptQuestions.answeredAt,
+      ...traceColumns,
       type: snapshotField.type,
       content: snapshotField.content,
+      caseStudy: snapshotField.caseStudy(),
+      media: snapshotField.contentMedia(),
+      sourceNumber: snapshotField.sourceNumber,
       data: snapshotField.data(),
     })
     .from(attemptQuestions)
     .where(eq(attemptQuestions.attemptId, attemptId))
     .orderBy(asc(attemptQuestions.order));
 
-  return shapeView(attempt, questions);
+  return shapeView(attempt, questions, sections);
 }
 
-interface ViewQuestion {
+/** Decision trace of a question (SECTIONED attempts); all null until the app syncs it. */
+const traceColumns = {
+  confidence: attemptQuestions.confidence,
+  eliminatedOptionIds: attemptQuestions.eliminatedOptionIds,
+  firstResponse: attemptQuestions.firstResponse,
+  dwellMs: attemptQuestions.dwellMs,
+  timeToFirstAnswerMs: attemptQuestions.timeToFirstAnswerMs,
+  timeToFinalAnswerMs: attemptQuestions.timeToFinalAnswerMs,
+  visitCount: attemptQuestions.visitCount,
+  answerChangeCount: attemptQuestions.answerChangeCount,
+  eliminationCount: attemptQuestions.eliminationCount,
+  everFlagged: attemptQuestions.everFlagged,
+};
+
+type Trace = {
+  [K in keyof typeof traceColumns]:
+    (typeof traceColumns)[K]['_']['data'] | null;
+};
+
+const EMPTY_TRACE: Trace = {
+  confidence: null,
+  eliminatedOptionIds: null,
+  firstResponse: null,
+  dwellMs: null,
+  timeToFirstAnswerMs: null,
+  timeToFinalAnswerMs: null,
+  visitCount: null,
+  answerChangeCount: null,
+  eliminationCount: null,
+  everFlagged: null,
+};
+
+export async function loadAttemptSections(db: Db, attemptId: string) {
+  return db
+    .select({
+      id: attemptSections.id,
+      sectionId: attemptSections.sectionId,
+      sectionOrder: attemptSections.sectionOrder,
+      budgetMs: attemptSections.budgetMs,
+      usedMs: attemptSections.usedMs,
+      status: attemptSections.status,
+      startedAt: attemptSections.startedAt,
+      endedAt: attemptSections.endedAt,
+      endReason: attemptSections.endReason,
+      breakTakenMs: attemptSections.breakTakenMs,
+      breakSkipped: attemptSections.breakSkipped,
+    })
+    .from(attemptSections)
+    .where(eq(attemptSections.attemptId, attemptId))
+    .orderBy(asc(attemptSections.sectionOrder));
+}
+
+type AttemptSectionView = Awaited<
+  ReturnType<typeof loadAttemptSections>
+>[number];
+
+interface ViewQuestion extends Trace {
   id: string;
   order: number;
   sectionId: string | null;
@@ -678,6 +932,9 @@ interface ViewQuestion {
   answeredAt: Date | null;
   type: QuestionType;
   content: string;
+  caseStudy: { title: string; content: string } | null;
+  media: QuestionMedia[];
+  sourceNumber: number | null;
   data: unknown;
 }
 
@@ -688,7 +945,9 @@ function shapeView(
     ...attempt
   }: Omit<AttemptRow, 'userId'> & { userId?: string },
   questions: ViewQuestion[],
+  timing: AttemptSectionView[] = [],
 ) {
+  const clocks = new Map(timing.map((row) => [row.sectionOrder, row]));
   const sections = new Map<
     number,
     {
@@ -696,14 +955,32 @@ function shapeView(
       title: string;
       order: number;
       questionCount: number;
+      /** SECTIONED only; null otherwise. */
+      clock: Omit<
+        AttemptSectionView,
+        'id' | 'sectionId' | 'sectionOrder'
+      > | null;
     }
   >();
   for (const question of questions) {
+    const clock = clocks.get(question.sectionOrder);
     const section = sections.get(question.sectionOrder) ?? {
       sectionId: question.sectionId,
       title: question.sectionTitle,
       order: question.sectionOrder,
       questionCount: 0,
+      clock: clock
+        ? {
+            budgetMs: clock.budgetMs,
+            usedMs: clock.usedMs,
+            status: clock.status,
+            startedAt: clock.startedAt,
+            endedAt: clock.endedAt,
+            endReason: clock.endReason,
+            breakTakenMs: clock.breakTakenMs,
+            breakSkipped: clock.breakSkipped,
+          }
+        : null,
     };
     section.questionCount++;
     sections.set(question.sectionOrder, section);
@@ -720,7 +997,7 @@ function shapeView(
   };
 }
 
-async function findOwned(
+export async function findOwned(
   db: Db,
   user: AuthUser,
   attemptId: string,

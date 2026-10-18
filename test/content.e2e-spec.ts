@@ -161,7 +161,7 @@ describe('Host content: topics, questions, exams (e2e)', () => {
     it('rejects unsupported types and a domain from another topic', async () => {
       const type = await ctx.api
         .post('/questions', hostA.token)
-        .send(singleChoice(topicId, 'Drag', { type: 'DRAG_DROP' }))
+        .send(singleChoice(topicId, 'Point', { type: 'POINT_CHOICE' }))
         .expect(400);
       expect(type.body.code).toBe('QUESTION_TYPE_NOT_SUPPORTED');
 

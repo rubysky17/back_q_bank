@@ -47,7 +47,7 @@ function groupBy<K>(items: GradedItem[], key: (item: GradedItem) => K) {
   return groups;
 }
 
-const DIFFICULTY_ORDER: Difficulty[] = ['EASY', 'MEDIUM', 'HARD'];
+const DIFFICULTY_ORDER: Difficulty[] = ['EASY', 'MEDIUM', 'HARD', 'EXPERT'];
 
 /** Overall result plus per-section / per-domain / per-difficulty breakdowns (strengths & weaknesses). */
 export function summarize(items: GradedItem[]) {

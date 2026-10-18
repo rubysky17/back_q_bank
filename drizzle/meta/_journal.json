@@ -8,6 +8,20 @@
       "when": 1792226600657,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1792308028822,
+      "tag": "0001_case_studies_media",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1792308836376,
+      "tag": "0002_sectioned_attempts",
+      "breakpoints": true
     }
   ]
 }

@@ -24,7 +24,7 @@ import { uuidv7 } from '../lib/uuidv7';
 
 export const ROLES = ['USER', 'HOST', 'ADMIN'] as const;
 export const PLATFORMS = ['IOS', 'ANDROID', 'WEB'] as const;
-/** Only SINGLE_CHOICE has a handler for now; the others are reserved for future question types. */
+/** POINT_CHOICE and CALCULATION have no handler yet; they are reserved for future question types. */
 export const QUESTION_TYPES = [
   'SINGLE_CHOICE',
   'MULTIPLE_CHOICE',
@@ -32,20 +32,81 @@ export const QUESTION_TYPES = [
   'DRAG_DROP',
   'CALCULATION',
 ] as const;
-export const DIFFICULTIES = ['EASY', 'MEDIUM', 'HARD'] as const;
+export const DIFFICULTIES = ['EASY', 'MEDIUM', 'HARD', 'EXPERT'] as const;
+export const MEDIA_PLACEMENTS = ['CONTENT', 'EXPLANATION'] as const;
 export const EXAM_STATUSES = ['DRAFT', 'PUBLISHED', 'ARCHIVED'] as const;
+/** ABANDONED: the user started the exam over; what was answered still counts in reports. */
 export const ATTEMPT_STATUSES = [
   'IN_PROGRESS',
   'SUBMITTED',
   'EXPIRED',
+  'ABANDONED',
+] as const;
+/**
+ * LEGACY: one deadline for the whole attempt, kept by the server (`expiresAt`).
+ * SECTIONED: every section has its own time budget that only runs while the user is working; the app
+ * keeps the clock (it works offline) and uploads its state with `POST /attempts/:id/sync`.
+ */
+export const ATTEMPT_MODES = ['LEGACY', 'SECTIONED'] as const;
+/** Where a SECTIONED attempt stands, as last reported by the app. */
+export const ATTEMPT_PHASES = [
+  'NOT_STARTED',
+  'IN_SECTION',
+  'IN_REVIEW',
+  'BREAK_OFFER',
+  'ON_BREAK',
+  'FINISHED',
+] as const;
+export const ATTEMPT_SECTION_STATUSES = [
+  'LOCKED',
+  'ACTIVE',
+  'COMPLETED',
+] as const;
+export const SECTION_END_REASONS = ['USER', 'TIME_UP'] as const;
+export const CONFIDENCE_LEVELS = ['LOW', 'MEDIUM', 'HIGH'] as const;
+/** Everything the user does during a SECTIONED attempt, as recorded by the app. */
+export const ATTEMPT_EVENT_TYPES = [
+  'SECTION_START',
+  'SECTION_PAUSE',
+  'SECTION_RESUME',
+  'SECTION_REVIEW_OPEN',
+  'SECTION_END',
+  'BREAK_START',
+  'BREAK_SKIP',
+  'BREAK_END',
+  'QUESTION_VIEW',
+  'QUESTION_LEAVE',
+  'OPTION_ELIMINATE',
+  'OPTION_RESTORE',
+  'ANSWER_SELECT',
+  'ANSWER_CLEAR',
+  'CONFIDENCE_SET',
+  'FLAG_SET',
+  'ATTEMPT_SUBMIT',
+  'ATTEMPT_ABANDON',
 ] as const;
 
 export type Role = (typeof ROLES)[number];
 export type Platform = (typeof PLATFORMS)[number];
 export type QuestionType = (typeof QUESTION_TYPES)[number];
 export type Difficulty = (typeof DIFFICULTIES)[number];
+export type MediaPlacement = (typeof MEDIA_PLACEMENTS)[number];
+/** An image attached to a question. `url` is relative to the API origin (`/media/...`, Workers static assets). */
+export interface QuestionMedia {
+  url: string;
+  alt: string;
+  placement: MediaPlacement;
+  width: number;
+  height: number;
+}
 export type ExamStatus = (typeof EXAM_STATUSES)[number];
 export type AttemptStatus = (typeof ATTEMPT_STATUSES)[number];
+export type AttemptMode = (typeof ATTEMPT_MODES)[number];
+export type AttemptPhase = (typeof ATTEMPT_PHASES)[number];
+export type AttemptSectionStatus = (typeof ATTEMPT_SECTION_STATUSES)[number];
+export type SectionEndReason = (typeof SECTION_END_REASONS)[number];
+export type ConfidenceLevel = (typeof CONFIDENCE_LEVELS)[number];
+export type AttemptEventType = (typeof ATTEMPT_EVENT_TYPES)[number];
 
 const oneOf = (column: string, values: readonly string[]) =>
   sql.raw(`"${column}" IN (${values.map((value) => `'${value}'`).join(', ')})`);
@@ -178,6 +239,39 @@ export const domains = sqliteTable(
   ],
 );
 
+/** Shared scenario (e.g. "Case Study 1: Highway Infrastructure Overhaul") referenced by several questions. */
+export const caseStudies = sqliteTable(
+  'CaseStudy',
+  {
+    id: id(),
+    topicId: text().notNull(),
+    title: text().notNull(),
+    /** Paragraphs separated by a blank line. */
+    content: text().notNull(),
+    createdById: text().notNull(),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    /** Titles are not unique: two papers can both have a "Case Study 1". */
+    index('CaseStudy_topicId_idx').on(t.topicId),
+    foreignKey({
+      name: 'CaseStudy_topicId_fkey',
+      columns: [t.topicId],
+      foreignColumns: [topics.id],
+    })
+      .onDelete('cascade')
+      .onUpdate('cascade'),
+    foreignKey({
+      name: 'CaseStudy_createdById_fkey',
+      columns: [t.createdById],
+      foreignColumns: [users.id],
+    })
+      .onDelete('restrict')
+      .onUpdate('cascade'),
+  ],
+);
+
 export const questions = sqliteTable(
   'Question',
   {
@@ -185,6 +279,7 @@ export const questions = sqliteTable(
     ownerId: text().notNull(),
     topicId: text().notNull(),
     domainId: text(),
+    caseStudyId: text(),
     type: text({ enum: QUESTION_TYPES }).notNull().default('SINGLE_CHOICE'),
     difficulty: text({ enum: DIFFICULTIES }).notNull().default('MEDIUM'),
     /** Question stem (plain text / markdown). */
@@ -192,6 +287,11 @@ export const questions = sqliteTable(
     /** searchKey(content), for the `q` filter. */
     searchText: text().notNull(),
     explanation: text(),
+    /** Images (charts, tables, hotspot pictures) shown with the stem or the explanation. */
+    media: text({ mode: 'json' })
+      .$type<QuestionMedia[]>()
+      .notNull()
+      .default(sql`'[]'`),
     /** Type-specific payload, validated by the type's handler. */
     definition: json().notNull(),
     /** Bumped on every edit; copied into attempts for per-version statistics. */
@@ -227,6 +327,14 @@ export const questions = sqliteTable(
     })
       .onDelete('set null')
       .onUpdate('cascade'),
+    index('Question_caseStudyId_idx').on(t.caseStudyId),
+    foreignKey({
+      name: 'Question_caseStudyId_fkey',
+      columns: [t.caseStudyId],
+      foreignColumns: [caseStudies.id],
+    })
+      .onDelete('set null')
+      .onUpdate('cascade'),
     check('Question_type_check', oneOf('type', QUESTION_TYPES)),
     check('Question_difficulty_check', oneOf('difficulty', DIFFICULTIES)),
   ],
@@ -243,8 +351,10 @@ export const exams = sqliteTable(
     searchText: text().notNull(),
     description: text(),
     status: text({ enum: EXAM_STATUSES }).notNull().default('DRAFT'),
-    /** null = untimed. */
+    /** null = untimed. Ignored when every section has its own `durationMinutes`. */
     durationMinutes: integer(),
+    /** Optional break offered between timed sections; null = no break. */
+    breakMinutes: integer(),
     /** Pass mark in percent (0-100); null = no pass/fail. */
     passingScore: integer(),
     shuffleQuestions: bool().notNull().default(false),
@@ -283,6 +393,8 @@ export const examSections = sqliteTable(
     title: text().notNull(),
     order: integer().notNull(),
     instructions: text(),
+    /** Time budget of the section. When every section has one, attempts are SECTIONED. */
+    durationMinutes: integer(),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
@@ -309,6 +421,8 @@ export const examQuestions = sqliteTable(
     questionId: text().notNull(),
     order: integer().notNull(),
     points: integer().notNull().default(1),
+    /** Number of the question in the source paper ("Question 17 of 60"), when imported. */
+    sourceNumber: integer(),
     createdAt: createdAt(),
   },
   (t) => [
@@ -349,13 +463,24 @@ export const attempts = sqliteTable(
     examId: text().notNull(),
     userId: text().notNull(),
     status: text({ enum: ATTEMPT_STATUSES }).notNull().default('IN_PROGRESS'),
+    mode: text({ enum: ATTEMPT_MODES }).notNull().default('LEGACY'),
+    /** SECTIONED only: last phase reported by the app. */
+    phase: text({ enum: ATTEMPT_PHASES }),
+    /** SECTIONED only: the section the user is on (or about to start). */
+    currentSectionOrder: integer(),
+    /** SECTIONED only: highest event `seq` stored; events arrive in order without gaps. */
+    syncedSeq: integer().notNull().default(0),
     /** Copied from the exam at start so history survives later edits. */
     examTitle: text().notNull(),
     passingScore: integer(),
+    /** SECTIONED only: break offered between sections, copied from the exam. */
+    breakMinutes: integer(),
     startedAt: timestamp().notNull(),
-    /** null = untimed. */
+    /** null = untimed, or SECTIONED (the app keeps the section clocks). */
     expiresAt: timestamp(),
+    /** When it was SUBMITTED or EXPIRED. */
     submittedAt: timestamp(),
+    abandonedAt: timestamp(),
     /** null while in progress, and briefly after closing until grading is written. */
     score: integer(),
     maxScore: integer().notNull(),
@@ -385,6 +510,55 @@ export const attempts = sqliteTable(
       .onDelete('cascade')
       .onUpdate('cascade'),
     check('Attempt_status_check', oneOf('status', ATTEMPT_STATUSES)),
+    check('Attempt_mode_check', oneOf('mode', ATTEMPT_MODES)),
+    check(
+      'Attempt_phase_check',
+      sql`"phase" IS NULL OR ${oneOf('phase', ATTEMPT_PHASES)}`,
+    ),
+  ],
+);
+
+/** SECTIONED attempts: one row per section with its time budget and how it was used. */
+export const attemptSections = sqliteTable(
+  'AttemptSection',
+  {
+    id: id(),
+    attemptId: text().notNull(),
+    sectionId: text(),
+    sectionOrder: integer().notNull(),
+    budgetMs: integer().notNull(),
+    /** Active time used so far (pauses excluded); never above budgetMs. */
+    usedMs: integer().notNull().default(0),
+    status: text({ enum: ATTEMPT_SECTION_STATUSES })
+      .notNull()
+      .default('LOCKED'),
+    startedAt: timestamp(),
+    endedAt: timestamp(),
+    endReason: text({ enum: SECTION_END_REASONS }),
+    /** Break taken after this section (wall-clock); null = no break offered or not reached yet. */
+    breakTakenMs: integer(),
+    breakSkipped: bool(),
+  },
+  (t) => [
+    uniqueIndex('AttemptSection_attemptId_sectionOrder_key').on(
+      t.attemptId,
+      t.sectionOrder,
+    ),
+    foreignKey({
+      name: 'AttemptSection_attemptId_fkey',
+      columns: [t.attemptId],
+      foreignColumns: [attempts.id],
+    })
+      .onDelete('cascade')
+      .onUpdate('cascade'),
+    check(
+      'AttemptSection_status_check',
+      oneOf('status', ATTEMPT_SECTION_STATUSES),
+    ),
+    check(
+      'AttemptSection_endReason_check',
+      sql`"endReason" IS NULL OR ${oneOf('endReason', SECTION_END_REASONS)}`,
+    ),
   ],
 );
 
@@ -407,6 +581,21 @@ export const attemptQuestions = sqliteTable(
     score: integer(),
     flagged: bool().notNull().default(false),
     answeredAt: timestamp(),
+    /** Decision trace (SECTIONED attempts, computed by the app from its events). */
+    confidence: text({ enum: CONFIDENCE_LEVELS }),
+    /** Option ids the user crossed out, as they stood at the end. */
+    eliminatedOptionIds: json(),
+    /** The first answer picked, to tell right→wrong from wrong→right changes. */
+    firstResponse: json(),
+    /** Active time spent on the question, all visits together. */
+    dwellMs: integer(),
+    /** Active time on the question until the first / the last answer pick. */
+    timeToFirstAnswerMs: integer(),
+    timeToFinalAnswerMs: integer(),
+    visitCount: integer(),
+    answerChangeCount: integer(),
+    eliminationCount: integer(),
+    everFlagged: bool(),
   },
   (t) => [
     uniqueIndex('AttemptQuestion_attemptId_order_key').on(t.attemptId, t.order),
@@ -425,5 +614,43 @@ export const attemptQuestions = sqliteTable(
     })
       .onDelete('set null')
       .onUpdate('cascade'),
+    check(
+      'AttemptQuestion_confidence_check',
+      sql`"confidence" IS NULL OR ${oneOf('confidence', CONFIDENCE_LEVELS)}`,
+    ),
+  ],
+);
+
+/**
+ * Append-only log of what the user did in a SECTIONED attempt. Ids come from the app, so uploading
+ * the same event twice stores it once.
+ */
+export const attemptEvents = sqliteTable(
+  'AttemptEvent',
+  {
+    id: text().primaryKey(),
+    attemptId: text().notNull(),
+    /** 1, 2, 3… per attempt, without gaps. */
+    seq: integer().notNull(),
+    type: text({ enum: ATTEMPT_EVENT_TYPES }).notNull(),
+    sectionOrder: integer().notNull(),
+    attemptQuestionId: text(),
+    payload: json(),
+    /** Active time used in the section when it happened: the time base of every metric. */
+    activeMs: integer().notNull(),
+    /** Device clock, for display only (it can be wrong). */
+    clientAt: timestamp().notNull(),
+    receivedAt: timestamp().notNull(),
+  },
+  (t) => [
+    uniqueIndex('AttemptEvent_attemptId_seq_key').on(t.attemptId, t.seq),
+    foreignKey({
+      name: 'AttemptEvent_attemptId_fkey',
+      columns: [t.attemptId],
+      foreignColumns: [attempts.id],
+    })
+      .onDelete('cascade')
+      .onUpdate('cascade'),
+    check('AttemptEvent_type_check', oneOf('type', ATTEMPT_EVENT_TYPES)),
   ],
 );

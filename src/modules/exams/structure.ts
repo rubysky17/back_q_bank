@@ -70,6 +70,7 @@ export async function addSection(
     examId,
     title: input.title,
     instructions: input.instructions,
+    durationMinutes: input.durationMinutes,
     order: max + 1,
   });
   return examDetail(db, examId);
@@ -86,7 +87,11 @@ export async function updateSection(
   await findSection(db, examId, sectionId);
   await db
     .update(examSections)
-    .set({ title: input.title, instructions: input.instructions })
+    .set({
+      title: input.title,
+      instructions: input.instructions,
+      durationMinutes: input.durationMinutes,
+    })
     .where(eq(examSections.id, sectionId));
   return examDetail(db, examId);
 }

@@ -4,11 +4,13 @@ import { z } from 'zod';
 import type { Db } from '../../db/client';
 import {
   attempts,
+  caseStudies,
   domains,
   examQuestions,
   examSections,
   EXAM_STATUSES,
   exams,
+  type QuestionMedia,
   questions,
   topics,
 } from '../../db/schema';
@@ -25,6 +27,8 @@ export const sectionInputSchema = z.strictObject({
   /** e.g. "Section 1" */
   title: zName(200),
   instructions: z.string().max(5000).nullish(),
+  /** Time budget of the section in minutes. When every section has one, the exam is taken section by section. */
+  durationMinutes: z.number().int().min(1).max(600).nullish(),
 });
 
 export const createExamSchema = z.strictObject({
@@ -34,6 +38,8 @@ export const createExamSchema = z.strictObject({
   description: z.string().max(5000).nullish(),
   /** Total time in minutes; null or omitted = untimed. */
   durationMinutes: z.number().int().min(1).max(1440).nullish(),
+  /** Optional break between timed sections, in minutes; null or omitted = no break. */
+  breakMinutes: z.number().int().min(1).max(120).nullish(),
   /** Pass mark in percent; null or omitted = no pass/fail. */
   passingScore: z.number().int().min(0).max(100).nullish(),
   /** Shuffle question order inside each section for every attempt. */
@@ -65,6 +71,7 @@ const summaryColumns = {
   description: exams.description,
   status: exams.status,
   durationMinutes: exams.durationMinutes,
+  breakMinutes: exams.breakMinutes,
   passingScore: exams.passingScore,
   shuffleQuestions: exams.shuffleQuestions,
   shuffleOptions: exams.shuffleOptions,
@@ -114,22 +121,28 @@ export async function loadSections(db: Db, examId: string) {
       sectionTitle: examSections.title,
       sectionOrder: examSections.order,
       instructions: examSections.instructions,
+      durationMinutes: examSections.durationMinutes,
       questionId: examQuestions.questionId,
       order: examQuestions.order,
       points: examQuestions.points,
+      sourceNumber: examQuestions.sourceNumber,
       type: questions.type,
       difficulty: questions.difficulty,
       content: questions.content,
       explanation: questions.explanation,
       definition: questions.definition,
+      media: questions.media,
       version: questions.version,
       domainId: domains.id,
       domainName: domains.name,
+      caseStudyTitle: caseStudies.title,
+      caseStudyContent: caseStudies.content,
     })
     .from(examSections)
     .leftJoin(examQuestions, eq(examQuestions.sectionId, examSections.id))
     .leftJoin(questions, eq(questions.id, examQuestions.questionId))
     .leftJoin(domains, eq(domains.id, questions.domainId))
+    .leftJoin(caseStudies, eq(caseStudies.id, questions.caseStudyId))
     .where(eq(examSections.examId, examId))
     .orderBy(
       asc(examSections.order),
@@ -145,10 +158,12 @@ export async function loadSections(db: Db, examId: string) {
     title: string;
     order: number;
     instructions: string | null;
+    durationMinutes: number | null;
     questions: {
       questionId: string;
       order: number;
       points: number;
+      sourceNumber: number | null;
       question: {
         id: string;
         type: NonNullable<(typeof rows)[number]['type']>;
@@ -156,8 +171,10 @@ export async function loadSections(db: Db, examId: string) {
         content: string;
         explanation: string | null;
         definition: unknown;
+        media: QuestionMedia[];
         version: number;
         domain: { id: string; name: string } | null;
+        caseStudy: { title: string; content: string } | null;
       };
     }[];
   }[] = [];
@@ -169,6 +186,7 @@ export async function loadSections(db: Db, examId: string) {
         title: row.sectionTitle,
         order: row.sectionOrder,
         instructions: row.instructions,
+        durationMinutes: row.durationMinutes,
         questions: [],
       };
       sections.push(section);
@@ -178,6 +196,7 @@ export async function loadSections(db: Db, examId: string) {
       questionId: row.questionId,
       order: row.order!,
       points: row.points!,
+      sourceNumber: row.sourceNumber,
       question: {
         id: row.questionId,
         type: row.type!,
@@ -185,10 +204,15 @@ export async function loadSections(db: Db, examId: string) {
         content: row.content!,
         explanation: row.explanation,
         definition: row.definition,
+        media: row.media ?? [],
         version: row.version!,
         domain:
           row.domainId && row.domainName !== null
             ? { id: row.domainId, name: row.domainName }
+            : null,
+        caseStudy:
+          row.caseStudyTitle !== null && row.caseStudyContent !== null
+            ? { title: row.caseStudyTitle, content: row.caseStudyContent }
             : null,
       },
     });
@@ -241,8 +265,11 @@ export async function createExam(
     .where(eq(topics.id, input.topicId));
   if (!topic) throw AppError.notFound('Topic');
 
-  const sections: { title: string; instructions?: string | null }[] =
-    input.sections ?? [{ title: 'Section 1' }];
+  const sections: {
+    title: string;
+    instructions?: string | null;
+    durationMinutes?: number | null;
+  }[] = input.sections ?? [{ title: 'Section 1' }];
   const examId = uuidv7();
   // One batch: the exam never exists without its sections.
   await db.batch([
@@ -254,6 +281,7 @@ export async function createExam(
       searchText: searchKey(input.title),
       description: input.description,
       durationMinutes: input.durationMinutes,
+      breakMinutes: input.breakMinutes,
       passingScore: input.passingScore,
       shuffleQuestions: input.shuffleQuestions,
       shuffleOptions: input.shuffleOptions,
@@ -263,6 +291,7 @@ export async function createExam(
         examId,
         title: section.title,
         instructions: section.instructions ?? null,
+        durationMinutes: section.durationMinutes ?? null,
         order: index + 1,
       })),
     ),
@@ -289,6 +318,7 @@ export async function updateExam(
         input.title === undefined ? undefined : searchKey(input.title),
       description: input.description,
       durationMinutes: input.durationMinutes,
+      breakMinutes: input.breakMinutes,
       passingScore: input.passingScore,
       shuffleQuestions: input.shuffleQuestions,
       shuffleOptions: input.shuffleOptions,

@@ -14,6 +14,7 @@ import { AppError, type ErrorBody } from './lib/app-error';
 import { attemptRoutes } from './modules/attempts/routes';
 import { catalogRoutes } from './modules/catalog/routes';
 import { examRoutes } from './modules/exams/routes';
+import { questionBankRoutes } from './modules/question-bank/routes';
 import { questionRoutes } from './modules/questions/routes';
 import { domainRoutes, topicRoutes } from './modules/topics/routes';
 
@@ -97,6 +98,7 @@ export function createApp() {
     .route('/questions', questionRoutes)
     .route('/exams', examRoutes)
     .route('/catalog/exams', catalogRoutes)
+    .route('/catalog/questions', questionBankRoutes)
     .route('/attempts', attemptRoutes);
 
   const app = new Hono<AppEnv>();

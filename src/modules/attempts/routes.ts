@@ -4,6 +4,7 @@ import { requireAuth } from '../../auth/middleware';
 import type { AppEnv } from '../../env';
 import { idParam, parseBody, parseQuery } from '../../lib/validation';
 import {
+  abandonAttempt,
   attemptResult,
   attemptReview,
   getAttempt,
@@ -13,6 +14,7 @@ import {
   saveAnswersSchema,
   submitAttempt,
 } from './service';
+import { syncAttempt, syncAttemptSchema } from './sync';
 
 /** The signed-in user's own attempts. Start one with POST /catalog/exams/:id/attempts. */
 export const attemptRoutes = new Hono<AppEnv>()
@@ -33,6 +35,18 @@ export const attemptRoutes = new Hono<AppEnv>()
     const input = await parseBody(c, saveAnswersSchema);
     return c.json(await saveAnswers(c.var.db, c.var.user, id, input));
   })
+
+  /** SECTIONED attempts: uploads the app's events and state (works after any time offline). */
+  .post('/:id/sync', async (c) => {
+    const id = idParam(c);
+    const input = await parseBody(c, syncAttemptSchema);
+    return c.json(await syncAttempt(c.var.db, c.var.user, id, input));
+  })
+
+  /** Closes the attempt unfinished; answered questions still count in reports. Safe to retry. */
+  .post('/:id/abandon', async (c) =>
+    c.json(await abandonAttempt(c.var.db, c.var.user, idParam(c))),
+  )
 
   /** Grades the attempt and returns the result. Safe to retry. */
   .post('/:id/submit', async (c) =>

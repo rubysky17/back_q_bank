@@ -17,6 +17,7 @@ import { hashPassword } from '../src/auth/password';
 import { configSchema } from '../src/env';
 import { searchKey } from '../src/lib/slugify';
 import { uuidv7 } from '../src/lib/uuidv7';
+import { DOMAINS, type DomainKey, topicSql } from './pmp-topic';
 
 config({ quiet: true });
 
@@ -37,29 +38,6 @@ const lit = (value: string | number | boolean | null): string => {
   if (typeof value === 'boolean') return value ? '1' : '0';
   return `'${value.replaceAll("'", "''")}'`;
 };
-
-type DomainKey = 'people' | 'process' | 'business';
-
-const DOMAINS: { key: DomainKey; name: string; description: string }[] = [
-  {
-    key: 'people',
-    name: 'People',
-    description:
-      'Leading and supporting the project team (42% of the PMP exam).',
-  },
-  {
-    key: 'process',
-    name: 'Process',
-    description:
-      'Technical aspects of managing a project (50% of the PMP exam).',
-  },
-  {
-    key: 'business',
-    name: 'Business Environment',
-    description:
-      'Connecting projects to organizational strategy (8% of the PMP exam).',
-  },
-];
 
 const QUESTIONS: {
   domain: DomainKey;
@@ -232,15 +210,7 @@ VALUES (${lit(uuidv7())}, ${lit(email)}, ${lit(passwordHash)}, ${lit(fullName)},
 ON CONFLICT ("email") DO UPDATE SET "role" = 'ADMIN', "passwordHash" = excluded."passwordHash", "updatedAt" = ${now};`);
   if (adminOnly) return sql.join('\n\n') + '\n';
 
-  sql.push(`INSERT INTO "Topic" ("id", "name", "slug", "description", "createdById", "createdAt", "updatedAt")
-VALUES (${lit(uuidv7())}, 'PMP', 'pmp', 'Project Management Professional certification (PMI).', ${owner}, ${now}, ${now})
-ON CONFLICT ("slug") DO NOTHING;`);
-
-  for (const [order, domain] of DOMAINS.entries()) {
-    sql.push(`INSERT INTO "Domain" ("id", "topicId", "name", "description", "order", "createdById", "createdAt", "updatedAt")
-VALUES (${lit(uuidv7())}, ${topic}, ${lit(domain.name)}, ${lit(domain.description)}, ${order}, ${owner}, ${now}, ${now})
-ON CONFLICT ("topicId", "name") DO NOTHING;`);
-  }
+  sql.push(...topicSql(owner, now, uuidv7, lit));
 
   // Questions, exam, sections and placements only when the mock exam does not exist yet.
   const questionIds = QUESTIONS.map(() => uuidv7());

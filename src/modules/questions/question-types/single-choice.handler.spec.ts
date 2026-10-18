@@ -140,7 +140,7 @@ describe('singleChoiceHandler', () => {
 
   it('reports unsupported question types', () => {
     expectBadRequest(
-      () => getQuestionTypeHandler('DRAG_DROP'),
+      () => getQuestionTypeHandler('POINT_CHOICE'),
       'QUESTION_TYPE_NOT_SUPPORTED',
     );
   });

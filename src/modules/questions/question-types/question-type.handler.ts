@@ -1,7 +1,11 @@
 import type { z } from 'zod';
 
 import { AppError } from '../../../lib/app-error';
-import type { Difficulty, QuestionType } from '../../../db/schema';
+import type {
+  Difficulty,
+  QuestionMedia,
+  QuestionType,
+} from '../../../db/schema';
 
 /**
  * One handler per question type. Adding a type (multiple choice, drag & drop, …) means writing a handler
@@ -38,6 +42,11 @@ export interface QuestionSnapshot {
   explanation: string | null;
   difficulty: Difficulty;
   domain: { id: string; name: string } | null;
+  /** Shared scenario the question refers to. Absent in snapshots taken before case studies existed. */
+  caseStudy?: { title: string; content: string } | null;
+  media?: QuestionMedia[];
+  /** "Question N" in the source paper, when the exam was imported. */
+  sourceNumber?: number | null;
   data: unknown;
   answerKey: unknown;
 }

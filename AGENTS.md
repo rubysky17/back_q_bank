@@ -76,6 +76,8 @@ npm run cf:types      # after editing wrangler.jsonc
 - **Attempts:**
   - Questions are frozen into `AttemptQuestion.snapshot` when an attempt starts. Never read live `Question` data when grading or reviewing.
   - Closing an attempt (`finalize`) is a conditional update; grading runs after it and is idempotent. A closed attempt with `score = null` is graded by the next read.
+  - SECTIONED attempts (every section has `durationMinutes`) have no server deadline: the app keeps the section clocks, works offline and uploads events + state with `POST /attempts/:id/sync` (`attempts/sync.ts`). `PATCH /answers` is LEGACY only. ABANDONED attempts are graded but never pass or fail.
+- **Migrations that rebuild a parent table:** `DROP TABLE` fires FK actions (`ON DELETE CASCADE`) even with `defer_foreign_keys`, so drizzle-kit's generated rebuild silently empties the child tables. Copy the children aside and drop them first (see `drizzle/0002_sectioned_attempts.sql`), and check that the generated `INSERT … SELECT` only reads columns that already exist.
 - **Data:** points and scores are integers, ids are UUIDv7 strings, and timestamps are Unix milliseconds (`Date` in code).
 - **Tests:**
   - Unit tests sit next to the file (`foo.spec.ts`).

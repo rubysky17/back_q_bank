@@ -1,0 +1,2094 @@
+{
+  "test": 1,
+  "section": 2,
+  "caseStudies": [],
+  "questions": [
+    {
+      "number": 1,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.12.05.png"
+      ],
+      "caseStudy": null,
+      "stem": "A large engineering firm is planning a project that will be subject to strict government regulations. The work will take place in an environmentally sensitive area and relies on a labor force that is susceptible to strikes. The project manager is aware that these and other uncertainties could threaten the project’s success.\n\nWhich two actions should the project manager adopt? (Choose 2)",
+      "options": [
+        {
+          "key": "A",
+          "text": "Develop a requirements traceability matrix to ensure compliance with regulations."
+        },
+        {
+          "key": "B",
+          "text": "Perform a program evaluation and review technique (PERT) analysis to estimate the project schedule."
+        },
+        {
+          "key": "C",
+          "text": "Engage key stakeholders to identify potential risks and document their concerns."
+        },
+        {
+          "key": "D",
+          "text": "Conduct a structured risk identification process and record risks in the risk register."
+        },
+        {
+          "key": "E",
+          "text": "Escalate labor-related risks to senior management for review and resolution before the project begins."
+        }
+      ],
+      "correct": "C,D",
+      "solutionLine": "C, D",
+      "explanation": "C. Engage key stakeholders to identify potential risks and document their concerns.\n\nD. Conduct a structured risk identification process and record risks in the risk register.\n\nStakeholders (labor groups, regulators, environmental bodies) provide critical insights for risk identification. Formal risk identification and recording in the risk register is the standard Project Management Institute approach.\n\nThe other options are incorrect.\n\nA requirements traceability matrix is a table that is created to link the requirements back to their origins. It is for scope and requirements alignment, not risk management.\n\nPERT is a schedule analysis technique used to estimate project duration through a weighted average of optimistic, pessimistic, and most likely activity durations. It does not comprehensively identify risks.\n\nA requirements traceability matrix is for scope and requirements alignment, not risk management.\n\nEscalating specific risks prematurely bypasses the structured risk management process; risks must be assessed and planned, not offloaded.",
+      "difficulty": "Expert",
+      "kind": "multi",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 2,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.12.09.png"
+      ],
+      "caseStudy": null,
+      "stem": "A company is implementing a new computerized system. During project execution, the leader of a department that is critical to project completion raises a concern that the department's requirements are completely missing from the approved project management plan.\n\nWhat should the project manager have done to avoid this issue?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Managed the expectations of all relevant stakeholders."
+        },
+        {
+          "key": "B",
+          "text": "Involved all relevant stakeholders in the project planning."
+        },
+        {
+          "key": "C",
+          "text": "Sought expert judgment in the project scope design."
+        },
+        {
+          "key": "D",
+          "text": "Developed a change management plan to approve changes."
+        }
+      ],
+      "correct": "B",
+      "solutionLine": "B. Involved relevant stakeholders in the project planning.",
+      "explanation": "The project manager should involve the relevant stakeholders in the project planning. The leader of the department is concerned that requirements are completely missing from the approved project management plan. The leader of the department is a stakeholder and they should have been included in project planning activities. If the approved project management plan does not include all stakeholder requirements then the project manager did not adequately involve all relevant stakeholders in the project planning process. Had the leader of the department been involved during the project planning process the team would have had a clear understanding of their requirements and how to engage them.\n\nAll other options are incorrect.\n\nManaging stakeholder expectations is incorrect because the requirements are missing completely. It is reasonable for the department head to expect that the department's requirements are met and recorded in the approved project management plan.\n\nSeeking expert judgment in the project scope design is incorrect. If the department leader was not included in project planning activities seeking expert judgment in the project scope design would not resolve the issue of missing requirements.\n\nDeveloping a change management plan is incorrect because the project manager was not aware of the issue until the leader of the department expressed their concerns.",
+      "difficulty": "Difficult",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 3,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.12.22.png"
+      ],
+      "caseStudy": null,
+      "stem": "The more complex a task, the greater the level of human involvement needed to achieve high-quality results. A useful approach is to categorize tasks by complexity and the need for human oversight. This classification helps identify three main opportunities for AI applications.\n\nDrag and drop the category below to its definition:",
+      "options": [
+        {
+          "key": "A",
+          "text": "Automation"
+        },
+        {
+          "key": "B",
+          "text": "Assistance"
+        },
+        {
+          "key": "C",
+          "text": "Augmentation"
+        }
+      ],
+      "correct": "A,B,C",
+      "solutionLine": "",
+      "explanation": "AI can support project management tasks in many ways. The more complex the task, the more human intervention is required to result in high-quality outcomes. In that sense, a good strategy is classifying tasks according to complexity and the need for human supervision. As a result of this classification, the opportunities to use AI fall into three categories:\n\nAutomation: Tasks that are low complexity and require little human intervention in their final output can be automated. Common examples are report generation, document analysis, and conference call summarization. Standard prompts can be created and reused across different projects and teams. A good source of those prompts is the PMI Prompt Library in the PMI Infinity™ tool.\n\nAssistance: At the assistance level, the tools complement analysis and iteratively build ideas toward an expected output. The result of the first iterations should not be considered complete without further analysis and refinement. Some examples include creating a risk register or a scheduling plan with buffers. A project professional is expected to review the results to ensure they are accurate and complete.\n\nAugmentation: Augmentation is the enhancement of existing capabilities and the exploration of new ones by professionals. Augmentation focuses on strategic and complex tasks, such as balancing the options in a project portfolio to maximize return on investment or performing risk forecasting based on external variables. Project professionals should use the tool as a brainstorming partner, exchanging ideas and refining the results through multiple iterations.",
+      "difficulty": "",
+      "kind": "match",
+      "media": [
+        {
+          "file": "q03-ai-categories-solution-table.png",
+          "alt": "Solution table: Automation, Assistance, Augmentation definitions",
+          "placement": "EXPLANATION"
+        }
+      ],
+      "notes": "Drag-and-drop matching. Pairs: 1 (low complexity, minimal human intervention) -> Automation; 2 (complement analysis, iteratively build ideas) -> Assistance; 3 (enhancement of existing capabilities, exploration of new ones) -> Augmentation. Options listed in definition order, so 'correct' A,B,C maps definitions 1,2,3 in order. No Correct Answer panel and no difficulty level shown in screenshot.",
+      "match": {
+        "targets": [
+          "Tasks with low complexity and minimal human intervention in their final output.",
+          "Tools that complement analysis and iteratively build ideas toward an expected output.",
+          "The enhancement of existing capabilities and the exploration of new ones by professionals."
+        ],
+        "choices": [
+          {
+            "key": "A",
+            "text": "Automation"
+          },
+          {
+            "key": "B",
+            "text": "Assistance"
+          },
+          {
+            "key": "C",
+            "text": "Augmentation"
+          }
+        ],
+        "answer": [
+          "A",
+          "B",
+          "C"
+        ]
+      }
+    },
+    {
+      "number": 4,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.12.26.png"
+      ],
+      "caseStudy": null,
+      "stem": "During a daily coordination meeting, the project manager displays a table that the team developed using three-point estimates for critical path activities. A key stakeholder insists on using the optimistic estimates to shorten the overall schedule, but the risk manager argues that excluding pessimistic values will make the contingency reserve meaningless. The project sponsor is worried that inflated estimates could delay project approval.\n\n| Activity | Optimistic (days) | Most Likely (days) | Pessimistic (days) |\n| A | 4 | 8 | 12 |\n| B | 5 | 7 | 8 |\n| C | 10 | 11 | 14 |\n| D | 3 | 6 | 9 |\n| E | 4 | 5 | 8 |\n\nWhat should the project manager do? (Refer to the table)",
+      "options": [
+        {
+          "key": "A",
+          "text": "Develop the baseline using only the optimistic estimates to satisfy stakeholders and secure early approval."
+        },
+        {
+          "key": "B",
+          "text": "Select the most likely values as the baseline and document optimistic and pessimistic values separately."
+        },
+        {
+          "key": "C",
+          "text": "Apply the program evaluation review technique (PERT) formula to integrate all three estimates and justify a balanced, data-driven schedule."
+        },
+        {
+          "key": "D",
+          "text": "Escalate the disagreement to the steering committee and ask them to provide guidance on which estimate to use for project planning activities."
+        }
+      ],
+      "correct": "C",
+      "solutionLine": "C. Apply the program evaluation review technique (PERT) formula to integrate all three estimates and justify a balanced, data-driven schedule.",
+      "explanation": "The project manager should use PERT, a planning and control tool used for defining and controlling the tasks necessary to complete a project. PERT is especially useful for project tasks with high uncertainty and a lack of detailed information, such as in research and development or large, complex projects.\n\nThe PERT equation is a formula used to estimate the duration of project tasks by incorporating uncertainty. It relies on a weighted average of three time estimates, reflecting different potential scenarios for an activity's duration:\n\nOptimistic (O): The shortest time in which the task can be completed under ideal conditions.\n\nMost Likely (ML): The most probable or realistic time it would take to complete the task.\n\nPessimistic (P): The longest time required if everything goes wrong.\n\nThe PERT formula to calculate the expected time (E) is:\n\nE = (O + 4ML + P) / 6\n\nThe other options are incorrect.\n\nPlanning based solely on optimistic estimates misrepresents risk and undermines credibility.\n\nUsing the most likely value alone underutilizes the range of data and weakens risk analysis.\n\nEscalation is premature. The project manager is accountable for preparing a defensible schedule baseline.",
+      "difficulty": "Moderate",
+      "kind": "standard",
+      "media": [
+        {
+          "file": "q04-three-point-estimates-table.png",
+          "alt": "Three-point estimates table: optimistic, most likely, pessimistic days for activities A–E",
+          "placement": "CONTENT"
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "number": 5,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.12.31.png"
+      ],
+      "caseStudy": null,
+      "stem": "A stakeholder requests that the project manager provide a clear timeline for project completion. At the end of the second sprint, the project manager shares a status table. The agile team lead reports to the project manager that multiple backlog items remain, all roughly equal in size, and notes that the team’s average velocity is 10 backlog items per two-week sprint. The stakeholder is requesting an exact date, but the agile team lead reminds the project manager that forecasts should be communicated as approximations rather than single-point estimates.\n\nEnd of Sprint 2 Status\n| Feature | A | B | C | D | E |\n| Backlog | 24 | 18 | 9 | 14 | 25 |\n| Story Points | 5 | 5 | 10 | 10 | 5 |\n\nWhat should the project manager communicate to the stakeholder? (Refer to the table)",
+      "options": [
+        {
+          "key": "A",
+          "text": "The project will finish in about 9 weeks."
+        },
+        {
+          "key": "B",
+          "text": "The project will finish in about 10 weeks."
+        },
+        {
+          "key": "C",
+          "text": "The project will finish in about 18 weeks."
+        },
+        {
+          "key": "D",
+          "text": "The project will finish in about 20 weeks."
+        }
+      ],
+      "correct": "C",
+      "solutionLine": "C. The project will finish in about 18 weeks.",
+      "explanation": "The realistic estimate the project manager should communicate is that the project will finish in about 18 weeks.\n\nIf the team consistently delivers 10 items per sprint and each sprint lasts 2 weeks, completing 90 items would require 9 sprints, or 18 weeks.\n\nBacklog items = 90\n\nItems per sprint = 10\n\n90 ÷ 10 = 9 sprints\n\nEach sprint lasts 2 weeks, so the total time required is 9 sprints × 2 weeks = 18 weeks.\n\nThe other options are incorrect.\n\nUsing this formula, there is only one correct answer: 18 weeks.",
+      "difficulty": "Expert",
+      "kind": "standard",
+      "media": [
+        {
+          "file": "q05-sprint2-status-table.png",
+          "alt": "End of Sprint 2 Status table: backlog items and story points for features A–E",
+          "placement": "CONTENT"
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "number": 6,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.12.36.png",
+        "Screenshot 2026-10-14 at 00.12.40.png"
+      ],
+      "caseStudy": null,
+      "stem": "During the production review, the project manager displays a progress chart showing five consecutive points trending upward, with the most recent one reaching the upper limit. The quality manager insists on stopping the process immediately, but the project sponsor argues that halting work will disrupt schedule commitments. The operations lead suggests continuing production until the limit is actually exceeded.\n\nWhat should the project manager do? (Refer to the chart)",
+      "options": [
+        {
+          "key": "A",
+          "text": "Stop the process immediately and instruct the project team to investigate and rework outputs before resuming production."
+        },
+        {
+          "key": "B",
+          "text": "Continue production while documenting the trend because no points have technically crossed the control limits."
+        },
+        {
+          "key": "C",
+          "text": "Escalate the disagreement to the steering committee and ask them to decide whether to halt or continue production."
+        },
+        {
+          "key": "D",
+          "text": "Facilitate a root cause analysis with the quality team, as the upward trend near the limit indicates a special cause variation."
+        }
+      ],
+      "correct": "D",
+      "solutionLine": "D. Facilitate a root cause analysis with the quality team, as the upward trend near the limit indicates a special cause variation.",
+      "explanation": "A run trending toward the limit signals instability. The project manager should perform a quality analysis before deciding on corrective action.\n\nThe other options are incorrect.\n\nPremature stoppage and rework without analysis can waste effort and create unnecessary delays.\n\nWaiting for a breach ignores statistical signals. The project manager should apply the rule of trends.\n\nEscalation is not required; the project manager and the quality team are empowered to act in accordance with the quality plan.",
+      "difficulty": "Difficult",
+      "kind": "standard",
+      "media": [
+        {
+          "file": "q06-project-progress-chart.png",
+          "alt": "Project progress line chart: Point 1 to Point 5 rising from about 10% to 100%",
+          "placement": "CONTENT"
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "number": 7,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.12.46.png"
+      ],
+      "caseStudy": null,
+      "stem": "A project manager is forming a new team. All members have worked together before, and one team member has a history of regularly challenging organizational processes and decisions. The project is about to begin, and the project manager wants to ensure alignment and smooth collaboration from the start.\n\nWhat should the project manager do first?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Facilitate a team discussion to review organizational process assets (OPAs) and agree on ground rules."
+        },
+        {
+          "key": "B",
+          "text": "Use predefined corporate guidelines to establish team conduct expectations."
+        },
+        {
+          "key": "C",
+          "text": "Request reassignment of the disruptive team member and secure a replacement before project initiation."
+        },
+        {
+          "key": "D",
+          "text": "Conduct a project kickoff meeting to review the project management plan."
+        }
+      ],
+      "correct": "A",
+      "solutionLine": "A. Facilitate a team discussion to review organizational process assets (OPAs) and agree on ground rules.",
+      "explanation": "At the start of a project, especially with a known behavioral risk, the project manager should take proactive steps to set expectations and align the team. Facilitating a discussion around organizational process assets (OPAs) and agreeing on team ground rules builds mutual understanding and ownership. This approach reflects strong leadership, stakeholder awareness, and emotional intelligence, which are key elements in team formation.\n\nAll other options are incorrect.\n\nWhile organizational guidelines are helpful, simply applying them without team involvement may lead to resistance — especially from someone known for challenging procedures. The team must be part of the agreement process to ensure buy-in.\n\nRemoving a team member before giving them a fair chance contradicts servant leadership and undermines psychological safety. It is a premature escalation without attempting resolution.\n\nKickoff meetings are useful, but reviewing the project plan does not address behavioral risks or team norms. Ground rules and team cohesion must be established separately and deliberately.",
+      "difficulty": "Difficult",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 8,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.12.50.png"
+      ],
+      "caseStudy": null,
+      "stem": "A project manager is requesting a lessons learned analysis from a recently concluded project. The project manager is looking for insight into how documenting lessons can benefit the company’s goal to improve future project outcomes.\n\nWhat should the project manager do?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Integrate the findings into project plans to ensure that valuable insights are incorporated into upcoming projects and stages."
+        },
+        {
+          "key": "B",
+          "text": "Review the archive in the project management information system for details about past risk management and mitigation efforts."
+        },
+        {
+          "key": "C",
+          "text": "Interview the relevant stakeholders to understand their concerns and use their feedback to refine the scope of new projects."
+        },
+        {
+          "key": "D",
+          "text": "Organize a session with the appropriate team members to review videos of phases where the team encountered documented issues."
+        }
+      ],
+      "correct": "A",
+      "solutionLine": "A. Integrate the findings into project plans to ensure that valuable insights are incorporated into upcoming projects and stages.",
+      "explanation": "Integrating the findings of lessons learned into project plans ensures that valuable insights are not only captured but also used to inform future projects and stages. Documenting and sharing lessons learned can prevent repeating mistakes, replicate successes, and drive consistent positive change that improves project outcomes.\n\nThe other options are incorrect.\n\nReviewing the archive of risk communications in the project management information system can verify what was shared and when, but it does not measure risk behavior, lessons learned, or evolution across the project timeline.\n\nInterviewing the stakeholders to understand their concerns is important, but refining the project scope is a different process from using lessons learned to improve outcomes.\n\nVideo sessions can be conducted after project phases to give timely feedback to all team members. Key objectives still need the benefit of lessons learned to improve outcomes.",
+      "difficulty": "Expert",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 9,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.12.53.png"
+      ],
+      "caseStudy": null,
+      "stem": "A collocated project team is facing communication issues. Some team members work early shifts (6 a.m. to 2 p.m.), others standard hours (9 a.m. to 5 p.m.), and a few work late (12 p.m. to 8 p.m.) due to client support requirements. Weekly team meetings scheduled at 3 p.m. consistently miss 40% of participants. The early shift team makes crucial technical decisions without late shift input, while the late shift finds integration issues the next morning.\n\nWhat should the project manager prioritize?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Encourage team members to work standard business hours for better collaboration."
+        },
+        {
+          "key": "B",
+          "text": "Schedule team meetings during the 2-hour overlap period with mandatory attendance."
+        },
+        {
+          "key": "C",
+          "text": "Create detailed documentation processes with asynchronous decision-making protocols."
+        },
+        {
+          "key": "D",
+          "text": "Implement multiple short meetings across different time slots with recorded summaries."
+        }
+      ],
+      "correct": "B",
+      "solutionLine": "B. Schedule team meetings during the 2-hour overlap period with mandatory attendance.",
+      "explanation": "Mandatory meetings during the existing 2-hour overlap will maximize participation while working within current constraints. This addresses the core issue of missing participants without disrupting established work patterns.\n\nThe other options are incorrect.\n\nIt is unrealistic to change established shift requirements, as this may not be possible and could further disrupt workflow.\n\nA detailed documentation process is helpful, but using asynchronous processes is too slow for critical technical decisions requiring real-time input.\n\nScheduling multiple meetings increases scheduling overhead and fragments communication.",
+      "difficulty": "Expert",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 10,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.12.57.png"
+      ],
+      "caseStudy": null,
+      "stem": "A project manager has recently been assigned to a complex multinational project with multiple stakeholders across time zones and business units. They quickly realize they lack clarity on who holds influence and what each stakeholder expects from the project.\n\nWhat should the project manager do first?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Initiate discussions with the resource manager to understand historical context and prior team dynamics."
+        },
+        {
+          "key": "B",
+          "text": "Review and refine the stakeholder register to identify roles, expectations, and influence levels."
+        },
+        {
+          "key": "C",
+          "text": "Request stakeholder mapping insights directly from the sponsor to prioritize key relationships."
+        },
+        {
+          "key": "D",
+          "text": "Evaluate current communication channels and adapt the plan to better reflect stakeholder complexity."
+        }
+      ],
+      "correct": "B",
+      "solutionLine": "B. Review and refine the stakeholder register to identify roles, expectations, and influence levels.",
+      "explanation": "Reviewing and refining the stakeholder register is a core stakeholder management activity. It enables the project manager to map influence, engagement, and expectations before taking any engagement action.\n\nAll other options are incorrect.\n\nWhile historical team context may help, it doesn’t directly address the stakeholder analysis needed for engagement planning.\n\nThe sponsor can provide limited input, but relying solely on one view risks missing broader stakeholder concerns or dynamics.\n\nCommunication planning is important, but it follows stakeholder identification and analysis — not before.",
+      "difficulty": "Difficult",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 11,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.13.02.png"
+      ],
+      "caseStudy": null,
+      "stem": "A large enterprise is developing a new feature-driven product. The project team is working under a tight timeline to prototype, test, and refine the product. The team lead has gathered the latest user stories and realizes the product needs two additional features.\n\nWhat impact does this have on the project?",
+      "options": [
+        {
+          "key": "A",
+          "text": "It significantly extends the project scope, timeline, and budget."
+        },
+        {
+          "key": "B",
+          "text": "It requires additional resources and an increase in the budget."
+        },
+        {
+          "key": "C",
+          "text": "It increases the backlog and might negatively impact velocity."
+        },
+        {
+          "key": "D",
+          "text": "It requires adjustments to the contingency and management reserves."
+        }
+      ],
+      "correct": "C",
+      "solutionLine": "C. It increases the backlog and might negatively impact velocity.",
+      "explanation": "Because this project must take an agile approach, adding two new features will increase the backlog and likely cause the project's velocity to slip.\n\nThe other options are incorrect.\n\nThe new development does not necessarily extend the project scope, timeline, and budget, and it is not known if it would require additional resources.\n\nMaking changes to the contingency and management reserves should be a last resort and would not be assumed to be an outcome of this development.",
+      "difficulty": "Difficult",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 12,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.13.09.png"
+      ],
+      "caseStudy": null,
+      "stem": "An engineering project is moving from the development phase to production. The project manager has a closing checklist for this phase that covers all the standard tasks. However, product development involved external dependencies, some of which have unresolved problems. The project manager does not want the project’s current status to be compromised by these uncertainties.\n\nWhat should the project manager do?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Review the project records to confirm that they accurately represent the project’s history and problems."
+        },
+        {
+          "key": "B",
+          "text": "Identify outstanding risks that should be accepted or transitioned to the production team."
+        },
+        {
+          "key": "C",
+          "text": "Verify that all contractual and legal obligations have been met to prevent any future legal issues."
+        },
+        {
+          "key": "D",
+          "text": "Hold knowledge-sharing sessions and forward the team’s insights and lessons learned to the production team."
+        }
+      ],
+      "correct": "B",
+      "solutionLine": "B. Identify outstanding risks that should be accepted or transitioned to the operations team.",
+      "explanation": "In closing a phase of a project, the project manager has a responsibility to convey any outstanding risks or uncertainties that might affect the project in the future. Reporting those issues as part of closing makes them visible so the next team can be ready to handle them.\n\nThe other options are incorrect.\n\nReviewing the project records is important. However, confirming that they accurately represent the project’s history and problems might not serve to highlight ongoing risks.\n\nIt is necessary to verify that all contractual and legal obligations have been met. However, if these issues are not contractual or legal, then verifying these obligations would not address them.\n\nThe project manager should forward the team’s insights and lessons learned to support the next team. However, the risk from unresolved issues might not have emerged in the knowledge-sharing sessions, and those deserve to be highlighted separately.",
+      "difficulty": "Expert",
+      "kind": "standard",
+      "media": [],
+      "notes": "Solution line says 'operations team' while option B says 'production team'; transcribed verbatim."
+    },
+    {
+      "number": 13,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.13.14.png"
+      ],
+      "caseStudy": null,
+      "stem": "A manufacturing project is nearing completion, and the deliverables are expected to be finished on time. Before the deliverables can be handed over to the distribution center, the project manager must validate that the product is ready for transition. The organization has defined readiness for transition primarily through objective proof that the deliverables consistently meet required quality and performance standards and will provide measurable value in use.\n\nWhat should the project manager do?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Audit project records to confirm that deliverables meet the organization's internal policies."
+        },
+        {
+          "key": "B",
+          "text": "Survey the stakeholders for agreement that the deliverables demonstrate business value."
+        },
+        {
+          "key": "C",
+          "text": "Conduct an independent product certification test to prove that quality standards are met."
+        },
+        {
+          "key": "D",
+          "text": "Verify that all regulatory, legal, and contractual obligations have been signed off on."
+        }
+      ],
+      "correct": "C",
+      "solutionLine": "C. Conduct a product certification test to prove that quality standards are met.",
+      "explanation": "Conducting an independent product certification test to prove that quality standards are met provides objective, verifiable evidence that the deliverables meet the quality and performance criteria tied to transition readiness. Since readiness is primarily defined by proof that the product consistently meets required standards and will provide measurable value in use, an independent certification test is the most direct and defensible validation method.\n\nThe other options are incorrect.\n\nAuditing records may show that the project followed internal procedures, but it does not prove that the deliverables themselves meet the required quality and performance standards that define measurable value.\n\nStakeholder input can be useful for perception, adoption, and lessons learned, but it is not as strong as formal testing when the organization requires measurable evidence that the deliverables meet defined standards.\n\nSign-offs confirm compliance and formal acceptability, yet they do not by themselves demonstrate that the product has achieved the tested quality and performance outcomes the organization uses to define measurable value.",
+      "difficulty": "Expert",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 14,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.13.21.png"
+      ],
+      "caseStudy": null,
+      "stem": "During the design phase of a complex project, the project manager identifies that incorporating adaptive tools could increase value and stakeholder alignment. This approach has proven effective in similar projects within the organization. However, it is unclear whether the current team has the capabilities to work with adaptive methods.\n\nWhat should the project manager do first?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Confirm the team’s capabilities before introducing adaptive tools and artifacts."
+        },
+        {
+          "key": "B",
+          "text": "Request support from the sponsor to bring in resources experienced in adaptive delivery."
+        },
+        {
+          "key": "C",
+          "text": "Update the project plan to include adaptive tools and schedule the first iteration"
+        },
+        {
+          "key": "D",
+          "text": "Proceed with adaptive tools and monitor performance during the next phase."
+        }
+      ],
+      "correct": "A",
+      "solutionLine": "A. Confirm the team’s capabilities before introducing adaptive tools and artifacts.",
+      "explanation": "The project manager must assess whether the team has the necessary skills to adopt adaptive tools before introducing them. Without this confirmation, the transition could fail or generate unnecessary delays. Starting with a capability check supports informed decision-making and responsible planning, aligned with principles of tailoring and team enablement.\n\nThe other options are incorrect.\n\nRequesting support from the sponsor bypasses the team assessment and skips escalation without confirming the need.\n\nUpdating the project plan to include adaptive tools and schedule the first iteration assumes readiness and alters the plan without evaluating feasibility.\n\nIntroducing a solution without ensuring the team can execute it increases the risk of misalignment or failure.",
+      "difficulty": "Difficult",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 15,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.13.24.png"
+      ],
+      "caseStudy": null,
+      "stem": "During the planning phase of a project, the project manager is struggling to identify key stakeholders. Without the right stakeholders, gathering accurate requirements and securing user feedback will be difficult. The stakeholder register is incomplete, and existing team members are uncertain about who to consult.\n\nWhat should the project manager do?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Review the stakeholder engagement plan for potential contacts and communication needs."
+        },
+        {
+          "key": "B",
+          "text": "Consult the project sponsor to confirm missing or unclear stakeholder information."
+        },
+        {
+          "key": "C",
+          "text": "Refer to the project charter to identify stakeholders named during project initiation."
+        },
+        {
+          "key": "D",
+          "text": "Review the project scope document for information about stakeholder involvement."
+        }
+      ],
+      "correct": "C",
+      "solutionLine": "C. Refer to the project charter to identify stakeholders named during project initiation.",
+      "explanation": "The project charter, created during initiation, typically includes a list of high-level stakeholders and their roles. This makes it a primary source for identifying stakeholders early in planning.\n\nThe other options are incorrect.\n\nReviewing the stakeholder engagement plan assumes that the stakeholder engagement plan is complete; however, it is typically created after stakeholders have been identified.\n\nConsulting the sponsor to confirm the missing information should be done after reviewing existing documentation.\n\nReviewing the scope document focuses solely on scope, which may indirectly reference stakeholders but is not the primary source for identifying them.",
+      "difficulty": "Expert",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 16,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.13.29.png"
+      ],
+      "caseStudy": null,
+      "stem": "A project manager has just finished a project charter and received approval from the project sponsor. The project manager then presented the project charter to the stakeholders and noticed a lack of participation from some of them during this meeting.\n\nWhat should the project manager do?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Include this in the risk register because the project manager is uncertain that the stakeholders understood their responsibilities in this project."
+        },
+        {
+          "key": "B",
+          "text": "Hold one-on-one meetings with these stakeholders to ensure their understanding of key deliverables and their responsibilities."
+        },
+        {
+          "key": "C",
+          "text": "Report the concerns about the stakeholders' lack of involvement to the project sponsor."
+        },
+        {
+          "key": "D",
+          "text": "Ask the project team to monitor these stakeholders and their involvement."
+        }
+      ],
+      "correct": "B",
+      "solutionLine": "B. Hold one-on-one meetings with these stakeholders to ensure their understanding of key deliverables and their responsibilities.",
+      "explanation": "Every stakeholder needs to understand the deliverables and their responsibilities towards the project. The project manager should address this immediately.\n\nAll other options are incorrect.\n\nThis is not a risk to be recorded in the risk register but an issue for the project manager to resolve It is the responsibility of the project manager to ensure that the stakeholders are involved in the project.\n\nReporting the concern to the project sponsor will not resolve the problem of stakeholder engagement.\n\nIt is not the responsibility of the project team to monitor the stakeholders. It needs to be done by the project manager.",
+      "difficulty": "Difficult",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 17,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.13.34 1.png"
+      ],
+      "caseStudy": null,
+      "stem": "A company has started doing agile projects. The project sponsor is frustrated and does not understand the new requirements gathering process, which seems to be incomplete and moving too fast.\n\nWhat should the project manager do?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Help the project sponsor understand the different tools and techniques available and why this one was selected."
+        },
+        {
+          "key": "B",
+          "text": "Update the stakeholder register to identify the project sponsor as a potential impediment to project progress."
+        },
+        {
+          "key": "C",
+          "text": "Let the team know that the sponsor is unhappy and switch from iterative planning to predictive planning."
+        },
+        {
+          "key": "D",
+          "text": "Pause the project work until the scrum master has a chance to review the complete backlog with the sponsor."
+        }
+      ],
+      "correct": "A",
+      "solutionLine": "A. Help the project sponsor understand the different tools and techniques available and why this one was selected",
+      "explanation": "Each agile practitioner is empowered to train and mentor stakeholders in the organization to help them understand the process and participate effectively.\n\nThe other options are incorrect.\n\nA project sponsor cannot be thought of as an impediment to an agile project. This would break the fundamental trust model. It is against the agile principles of self-organization and servant leadership to dictate process without any buy-in from the teams doing the work.\n\nPausing the project is incorrect because it breaks the agile process and implies that the entire backlog of work has to be approved ahead of time. This would effectively create a waterfall project without agility or thoroughness.",
+      "difficulty": "Difficult",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 18,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.13.34.png"
+      ],
+      "caseStudy": null,
+      "stem": "A startup is expanding to scale its product development efforts. The project manager builds a team that includes both experienced members and several new hires. Facing a tight deadline and limited time for formal training, the team must become competent as quickly as possible.\n\nWhat should the project manager do?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Evaluate the team’s knowledge levels and provide a series of training sessions to address the deficits."
+        },
+        {
+          "key": "B",
+          "text": "Assign all critical tasks to experienced team members and the easy tasks to newer team members."
+        },
+        {
+          "key": "C",
+          "text": "Brainstorm with the entire team to find ways to accelerate project velocity and offset the learning curve."
+        },
+        {
+          "key": "D",
+          "text": "Strategically mix team members with varying expertise to combine diverse skills across the team."
+        }
+      ],
+      "correct": "D",
+      "solutionLine": "D. Strategically mix team members with varying expertise to combine diverse skills across the team.",
+      "explanation": "By strategically mixing team members of different seniority levels and expertise, the project manager can promote knowledge sharing, foster a learning culture, provide mentorship opportunities, and give team members hands-on experience to enhance overall team competency.\n\nThe other options are incorrect.\n\nEvaluating the team’s levels of knowledge at the beginning is a critical task, but the tight deadline might not allow time to provide a series of training sessions before the work starts.\n\nAssigning the most important tasks to the most experienced team members risks overloading them and deprives the newer members of a chance to learn on the job, perpetuating an imbalance on the team.\n\nBrainstorming with the team on ways to speed up the project might produce some useful ideas, but it would not eliminate the learning curve or solve the problem of competency development.",
+      "difficulty": "Expert",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 19,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.13.41.png"
+      ],
+      "caseStudy": null,
+      "stem": "A project is currently 15% behind schedule. The sponsor believes recovery is possible with extensive overtime. The finance manager warns the budget cannot absorb additional costs. The project management office cautions that recovery options must be formally analyzed and approved before implementation.\n\nWhat should the project manager do?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Conduct a structured impact analysis and present recovery options with cost, schedule, and risk trade-offs."
+        },
+        {
+          "key": "B",
+          "text": "Examine the critical path to find tasks that can be moved or reduced in scope to aid in recovery."
+        },
+        {
+          "key": "C",
+          "text": "Perform fast-tracking and crashing techniques to shorten the project schedule without increasing costs."
+        },
+        {
+          "key": "D",
+          "text": "Maintain the original schedule because there might be down time at the end of the project when the team can catch up."
+        }
+      ],
+      "correct": "A",
+      "solutionLine": "A. Conduct a structured impact analysis and present recovery options with cost, schedule, and risk trade-offs.",
+      "explanation": "The project manager should perform a structured impact analysis and present recovery trade-offs prior to taking any corrective action; this is the correct approach.\n\nThe other options are less effective.\n\nThe critical path method allows the project manager to focus on critical tasks that impact the schedule and adjust them as necessary. However, the project manager should not make these changes without formal approval.\n\nFast-tracking and crashing techniques can be used to shorten the project schedule but are not without consequences such as increased budget and risk.\n\nMaintaining a course that is already behind without making changes leads to bigger issues down the line.",
+      "difficulty": "Difficult",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 20,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.13.46.png"
+      ],
+      "caseStudy": null,
+      "stem": "A medical engineering firm is developing new medical devices for hospitals and clinics. The devices are subject to government regulations and must be thoroughly tested before release. There is a high potential for circumstances to change throughout this project's life cycle. Project stakeholders have helped identify some risks and asked the project manager to prepare a plan to address all possible risks.\n\nWhat should the project manager do next?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Develop workarounds that can be acted on immediately to minimize the impact of risks as they are detected."
+        },
+        {
+          "key": "B",
+          "text": "Use qualitative and quantitative analyses to prioritize risks based on the severity of their potential impacts."
+        },
+        {
+          "key": "C",
+          "text": "Use parametric estimating to employ an algorithm that can help calculate the extrapolated costs of each risk."
+        },
+        {
+          "key": "D",
+          "text": "Use a continuous flow diagram (CFD) to track the amount of work accomplished despite risks and other obstacles."
+        }
+      ],
+      "correct": "B",
+      "solutionLine": "B. Use qualitative and quantitative analyses to prioritize risks based on the severity of their potential impacts.",
+      "explanation": "After identifying risks, the next step in risk management is risk analysis. Qualitative analysis evaluates risks based on criteria like probability and impact, often using risk matrices or rankings. Quantitative analysis involves more numerical modeling techniques (e.g., Monte Carlo simulations) to calculate probable costs and impacts. Prioritizing risks enables the project manager to focus efforts on the most significant risks and allocate resources effectively.\n\nThe other options are incorrect.\n\nWorkarounds should only be developed after risks are assessed and prioritized. A workaround is an immediate, temporary response to an issue for which no prior response had been planned or was ineffective.\n\nParametric estimating is used for cost estimation or schedule estimation based on historical data and statistical models, but is not designed to assess or prioritize risks, particularly their severity or impact.\n\nA CFD tracks how much work is getting accomplished for the total project. Although these are all useful tools, they are not specific to risk management.",
+      "difficulty": "Difficult",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 21,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.14.00.png"
+      ],
+      "caseStudy": null,
+      "stem": "A team member is unhappy with their workload and feels they are not being supported enough. The project manager wants to meet with the team member to discuss their concerns and apply a compromise/reconcile conflict management approach.\n\nWhat should the project manager do first?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Explain the project's constraints and competing priorities before proposing options."
+        },
+        {
+          "key": "B",
+          "text": "Listen carefully to the team member’s concerns and acknowledge their perspective."
+        },
+        {
+          "key": "C",
+          "text": "Propose a revised task schedule to reduce the team member’s workload pressure."
+        },
+        {
+          "key": "D",
+          "text": "Offer additional support resources to help the team member manage expectations."
+        }
+      ],
+      "correct": "B",
+      "solutionLine": "B. Listen carefully to the team member’s concerns and acknowledge their perspective.",
+      "explanation": "Compromise/reconcile is a collaborative conflict resolution strategy that begins with active listening. Understanding the team member’s perspective builds trust and opens the door to mutually acceptable solutions.\n\nThe other options are incorrect.\n\nJumping directly into project constraints may seem dismissive and can escalate tension if the team member does not feel heard.\n\nOffering a solution too early without full understanding may not address the root concern or could appear unilateral.\n\nWhile support can help, offering it before understanding the issue may result in a mismatch between needs and actions.",
+      "difficulty": "Difficult",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 22,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.14.05.png"
+      ],
+      "caseStudy": null,
+      "stem": "Disagreements have developed among project team members. The project manager initially attributed it to stress from the impending deadline, but it continued even after the deadline was met. To address the issue effectively, the project manager needs to identify the cause of friction and resolve the underlying conflict.\n\nWhat should the project manager do?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Determine whether different individual work styles are causing issues, and establish ground rules for the team’s interactions."
+        },
+        {
+          "key": "B",
+          "text": "Identify the team members who have been involved in the arguments and warn them that disciplinary action will be initiated."
+        },
+        {
+          "key": "C",
+          "text": "Distribute tasks evenly across the team and follow the communication plan."
+        },
+        {
+          "key": "D",
+          "text": "Ignore the tensions and postpone resolution until the next project iteration."
+        }
+      ],
+      "correct": "A",
+      "solutionLine": "A. Determine whether different individual work styles are causing issues, and establish ground rules for the team’s interactions.",
+      "explanation": "Since delivery was successful and the issue persisted after completion, it is likely that the team understands the requirements and has the resources they need to succeed. Differences in work styles can lead to misunderstandings, inefficiencies, or even friction among team members. Proactively identifying issues and setting ground rules allows a project manager and team members to build an environment of cooperation, mutual respect, and alignment, ultimately improving the team's effectiveness and ensuring successful project delivery.\n\nThe other options are incorrect.\n\nIdentifying the team members responsible for the conflict and initiating disciplinary action might be a mistake. Naming specific people as the problem without understanding the source of the conflict risks missing the underlying dynamics and perpetuating the conditions that caused the conflict.\n\nTrying to reduce conflict by evenly redistributing tasks and adhering to the communications plan is a positive step if identified as the source of the issue, but it does not necessarily address or resolve the source of conflict between team members.\n\nIgnoring the tensions and postponing resolution until after the next iteration does not help the manager understand the source of the problem. This option carries the additional risk that unaddressed conflicts may increase over time.",
+      "difficulty": "Moderate",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 23,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.14.08.png"
+      ],
+      "caseStudy": null,
+      "stem": "A project manager has been assigned to a diverse team of individuals with different competencies. The project manager wants to ensure each team member contributes to the project vision and grows their skill set throughout the project. Their goal is to ensure alignment and enhance team efficiency.\n\nWhat should the project manager do?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Use AI technology to analyze each team member’s strengths and assign tasks based on their capabilities, interests, and vision."
+        },
+        {
+          "key": "B",
+          "text": "Implement a directive approach to ensure team members understand the importance of the project’s intended outcome and how to achieve it."
+        },
+        {
+          "key": "C",
+          "text": "Organize mentorship opportunities to nurture less-experienced team members, building their capabilities and confidence."
+        },
+        {
+          "key": "D",
+          "text": "Demonstrate the importance of hierarchy and the value of seeking guidance from senior stakeholders with experience in driving a project’s vision."
+        }
+      ],
+      "correct": "C",
+      "solutionLine": "C.  Organize mentorship and coaching opportunities to nurture less-experienced team members, building their capabilities and confidence.",
+      "explanation": "Organizing mentorship opportunities supports team members in developing their skills and knowledge both throughout the course of the project and through long-term relationships. Pairing less-experienced team members with senior stakeholders fosters a learning culture that blends competency levels across the team and increases the confidence of the team as well as their alignment on the project’s objectives.\n\nThe other options are incorrect.\n\nAI technology can be a tool for analyzing documentation, but should not be relied upon to accurately assess team members’ capabilities or vision. Relying too heavily on AI also runs the risk of inputting sensitive information, which may be against the organization’s regulations and protocols.\n\nAn authoritative approach may leave individuals feeling unrepresented and foster resentment, which can undermine future collaboration. Achieving team and stakeholder alignment often requires more flexibility.\n\nEvaluating the vision and input of junior team members rather than facilitating their growth and supporting their contributions can lead to resentment among the team and the risk of missing out on an innovative suggestions because newer team members were not included in defining the project’s vision.",
+      "difficulty": "Difficult",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 24,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.14.12.png"
+      ],
+      "caseStudy": null,
+      "stem": "A manufacturing company is adding a new product line, adopting best industry-standard practices. The project manager needs to prepare a project management plan that lists all resources. The resources should include any additional knowledge that might be critical to the project or beyond the organization's knowledge repository.\n\nWhat should the project manager do?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Ensure that all team members have easy access to manuals, procedures, and other documentation."
+        },
+        {
+          "key": "B",
+          "text": "Host brainstorming sessions to help make team members’ implicit knowledge more accessible."
+        },
+        {
+          "key": "C",
+          "text": "Select team members who have a deep knowledge of the industry to minimize the need for extra research."
+        },
+        {
+          "key": "D",
+          "text": "Help project team members understand their roles and responsibilities, including identifying gaps in knowledge."
+        }
+      ],
+      "correct": "B",
+      "solutionLine": "B. Host brainstorming sessions to help make team members’ implicit knowledge more accessible.",
+      "explanation": "Tacit knowledge that team members carry from their experience can offer critical information beyond what has been formally documented. Creating a culture of open communication through conversations and brainstorming sessions can help make this implicit knowledge available for the project.\n\nThe other options are incorrect.\n\nOffering easy access to manuals, procedures, and other documentation is important, but this kind of knowledge is already codified in the repository. The project manager needs to identify other sources of critical knowledge beyond the formal documentation.\n\nSelecting team members who have a deep knowledge of the industry would minimize the need for extra research, but that choice might be beyond the project manager’s control. Also, even with the most experienced team members, the project manager still needs to identify additional knowledge critical to the project.\n\nHelping the project team members understand their roles and responsibilities should be part of setting up the project, and identifying gaps in knowledge would help the team know where to focus training and research efforts. However, identifying the team’s gaps in knowledge rests on first having a clear understanding of what the critical knowledge is.",
+      "difficulty": "Expert",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 25,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.14.15.png"
+      ],
+      "caseStudy": null,
+      "stem": "A public university is investing a portion of its funding in an innovative construction project. The project sponsor wants to ensure that the risks associated with this investment are evaluated regularly to determine whether to continue funding the next stage of the project. The project manager needs to ensure that this project does not exceed any of the established risk thresholds.\n\nWhat should the project manager do?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Implement investment controls to evaluate and analyze the possible returns on investment and reduce potential risks."
+        },
+        {
+          "key": "B",
+          "text": "Organize a self-governance model in which the responsibilities and risks are equally distributed among the team."
+        },
+        {
+          "key": "C",
+          "text": "Implement a system of escalation to the project sponsor whenever there is a question of risk outweighing the potential reward."
+        },
+        {
+          "key": "D",
+          "text": "Use budget reserves to create a financial buffer and account for any unforeseen risks and uncertainties that may arise."
+        }
+      ],
+      "correct": "A",
+      "solutionLine": "A. Implement investment control to thoroughly evaluate and analyze the possible returns on investment and reduce potential risks.",
+      "explanation": "Investment control frequently includes a thorough risk evaluation procedure to analyze the possible returns on investment and reduce potential risks, such as having defined decision points throughout the project phases to determine whether the next round of investment funding still makes good business sense for the lender and the overall project.\n\nThe other options are incorrect.\n\nSelf-governance carries too much potential for fragmented decision-making and conflict between decision-makers, resulting in a lack of direction and accountability. Additionally, it does not adequately establish a threshold for escalation.\n\nEscalation can be useful in projects where the decision-making authority involves higher-ranking individuals outside of the project team managers, but escalating to the project sponsor without first establishing agreed-upon thresholds can undermine the project-level authority of the project manager and cause more problems than it solves.\n\nHaving an adequate financial buffer is a key part of ensuring a project does not exceed its cost threshold and venture into risky financial territory, but it is only a single component of a threshold for escalation and is not a process for determining when to escalate.",
+      "difficulty": "Difficult",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 26,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.14.18.png"
+      ],
+      "caseStudy": null,
+      "stem": "Several senior partners at an architecture firm are preparing for retirement. These partners possess institutional knowledge and expertise that the firm needs to retain after the partners leave. To preserve this knowledge, the firm has asked the project manager to update its organizational process assets (OPAs).\n\nWhat should the project manager do next?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Review the stakeholder register to find individuals who are interested in ongoing, proactive engagement with project documentation."
+        },
+        {
+          "key": "B",
+          "text": "Conduct team-building activities to strengthen bonds with the partners and document their conclusions about how teams can better work together."
+        },
+        {
+          "key": "C",
+          "text": "Perform an asset analysis of the strategic plan to evaluate the organization’s strengths, weaknesses, opportunities, and threats (SWOT)."
+        },
+        {
+          "key": "D",
+          "text": "Document lessons learned from each project phase and ensure the organization's information repositories are kept current."
+        }
+      ],
+      "correct": "D",
+      "solutionLine": "D. Document lessons learned from each project phase and ensure the organization's information repositories are kept current.",
+      "explanation": "OPAs are internal organizational knowledge and processes assets that are used to manage and improve projects. They include documents, processes, and knowledge bases that help improve project management through established standards and collective knowledge. The project manager should document lessons learned from each project phase and ensure the organization's knowledge repositories are kept current.\n\nThe other options are incorrect.\n\nReviewing the stakeholder register helps identify influence, but not specific OPAs.\n\nTeam-building activities can be important management tools to strengthen team understanding and cohesion, but they do not result in updates to the OPAs. OPAs are more formal and comprehensive organizational assets.\n\nA SWOT analysis is an effective management strategy for planning, not an OPA.",
+      "difficulty": "Expert",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 27,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.14.22.png"
+      ],
+      "caseStudy": null,
+      "stem": "A utility company is exploring renewable energy sources, developing new technologies for energy production and distribution. Midway through a project, two key resources are assigned to work on a high-priority initiative. The functional manager insists they can multitask. The project sponsor argues that delivery dates for both projects must remain fixed. The project teams warn quality may be negatively impacted as a result of the overwork.\n\nWhat should the project manager do?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Re-evaluate the schedule and make realistic adjustments with the functional manager and sponsor."
+        },
+        {
+          "key": "B",
+          "text": "Keep resources double-assigned, accept reduced productivity, but assign a quality assurance manager to both projects."
+        },
+        {
+          "key": "C",
+          "text": "Reassign resources to the original project because this project aligns better with the organization's priorities."
+        },
+        {
+          "key": "D",
+          "text": "Hire better qualified and more experienced replacements who can meet the delivery dates for the first project."
+        }
+      ],
+      "correct": "A",
+      "solutionLine": "A. Re-evaluate the schedule and make realistic adjustments with the functional manager and sponsor.",
+      "explanation": "The project manager should re-evaluate the schedule realistically with the stakeholders to accommodate both projects simultaneously and create a solution to the issue of negatively impacting the quality of both initiatives.\n\nThe other options are incorrect:\n\nWorker overload lowers productivity and quality.\n\nForcing reassignment ignores organizational balance.\n\nReplacement resources would need time to onboard and ramp up to the new project, which would impact the project schedule.",
+      "difficulty": "Difficult",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 28,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.14.26.png"
+      ],
+      "caseStudy": null,
+      "stem": "A project advisory team is working remotely from the core project team. There is a constant flow of information between these two teams, and both teams approve project documents. Any delays in approvals will result in additional expense.\n\nWhich practice would assure the project manager that all of the documents are on hand, updated, and approved properly?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Let the advisory and core teams develop and maintain their own document categorization and naming systems."
+        },
+        {
+          "key": "B",
+          "text": "Require each member of the advisory and project teams to maintain updated records."
+        },
+        {
+          "key": "C",
+          "text": "Have the sponsor maintain and approve changes within a single document registry."
+        },
+        {
+          "key": "D",
+          "text": "Oversee a single document registry and change control system that both teams use."
+        }
+      ],
+      "correct": "D",
+      "solutionLine": "D. Oversee a single document registry and change control system that both teams use.",
+      "explanation": "Document control is an important part of project change control. A single document registry will ensure that there is version control and all the documents are accessible to all the stakeholders from a single repository. The project manager should oversee a single document registry and change control system that both teams use.\n\nThe other options are incorrect.\n\nMultiple document registry systems will cause inconsistency confusion and delays.\n\nIndividual tracking increases the risk of missing, outdated, or inconsistent information because there’s no coordinated process or tool.\n\nThe project sponsor’s role is to provide strategic guidance and governance, not to perform day-to-day administrative tasks like document management.",
+      "difficulty": "Difficult",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 29,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.14.29.png"
+      ],
+      "caseStudy": null,
+      "stem": "A project manager is working on a large construction project with a tight deadline. The procurement department changes suppliers midway through the project. The project manager discovers that the new vendor is not on the approved vendor list and may be unable to meet the project schedule.\n\nWhat should the project manager do?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Engage a vendor from the approved vendors list to find a solution regarding the project's schedule."
+        },
+        {
+          "key": "B",
+          "text": "Consult with stakeholders to update the risk register and determine a mitigation strategy."
+        },
+        {
+          "key": "C",
+          "text": "Perform a risk probability and impact assessment, then submit a change request as needed."
+        },
+        {
+          "key": "D",
+          "text": "Meet with the vendor to negotiate a scope change to the procurement contract to meet the schedule."
+        }
+      ],
+      "correct": "C",
+      "solutionLine": "C. Perform a risk probability and impact assessment, then submit a change request as needed.",
+      "explanation": "Performing a risk probability and impact assessment will determine the impact on the schedule of changing vendors. The project manager can submit a change request as necessary after either renegotiating with the original supplier or finding a new vendor.\n\nThe other options are incorrect.\n\nBuying from another vendor would further delay the schedule and likely increase the cost. It also does not address the current issue or assess its impact on the project or potential corrective actions.\n\nConsulting with stakeholders to update the risk register and determine a mitigation strategy would be unnecessary at this stage.\n\nNegotiating a change to the scope of the procurement contract to meet the deadline would have ramifications for other areas of the project, including scope and quality assurance.",
+      "difficulty": "Expert",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 30,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.14.32.png"
+      ],
+      "caseStudy": null,
+      "stem": "This organization uses a red, yellow, green rating system. Project milestones are reported green, so the sponsor insists the overall status must remain green. Defect density and rework rates are increasing steadily, and the quality assurance manager argues that these trends signal future failure. The client asks for assurance that the product will meet acceptance standards.\n\nWhat should the project manager do?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Maintain green status because milestones are achieved and reassure the client the product meets acceptance standards."
+        },
+        {
+          "key": "B",
+          "text": "Report red status immediately and halt execution of project activities until metrics show significant improvement."
+        },
+        {
+          "key": "C",
+          "text": "Maintain green status, citing defect density and rework rates that remain within acceptable thresholds."
+        },
+        {
+          "key": "D",
+          "text": "Report yellow status, citing the quality metrics and outlining mitigation strategies underway."
+        }
+      ],
+      "correct": "D",
+      "solutionLine": "D. Report yellow status, citing the quality metrics and outlining mitigation strategies underway.",
+      "explanation": "The project manager should communicate project status that incorporates both lagging and leading indicators, with transparent reporting and mitigation actions. Reporting a yellow status with supporting quality metrics and mitigation strategies enables proactive decision-making, and demonstrates that corrective actions are in progress to manage risks.\n\nThe other options are less effective.\n\nSelective reporting hides critical risks and creates false assurance for executives.\n\nDeclaring red and halting activities is disproportionate without further analysis or corrective planning.\n\nMaintaining green status when the trends show otherwise is not an honest report.",
+      "difficulty": "Difficult",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 31,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.14.37.png"
+      ],
+      "caseStudy": null,
+      "stem": "Although a project is performing on time, within scope and budget, the project manager learns that the project sponsor is unhappy with its progress.\n\nWhat should the project manager have done to avoid this situation?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Conducted frequent reviews and assessments to identify and address any potential risks."
+        },
+        {
+          "key": "B",
+          "text": "Aligned project objectives with the project sponsor's expectations and requirements."
+        },
+        {
+          "key": "C",
+          "text": "Communicated regularly with the project sponsor to provide updates and address any concerns."
+        },
+        {
+          "key": "D",
+          "text": "Implemented strict control measures to ensure that project milestones and deliverables are met."
+        }
+      ],
+      "correct": "C",
+      "solutionLine": "C. Communicated regularly with the project sponsor to provide updates and address any concerns.",
+      "explanation": "The project manager must communicate with the project sponsor effectively. The sponsor provides resources and support for the project and is accountable for enabling success. Without regular communication, the project manager cannot ensure that the sponsor is sufficiently informed and engaged about progress. The sponsor is unhappy about progress despite the project's performance.\n\nThe other options are incorrect.\n\nConducting frequent reviews to identify and address any potential issues or risks does not address the source of the sponsor's dissatisfaction. The project is performing well and there is no evidence to suggest that the project team is not sufficiently identifying and addressing risks.\n\nAligning project objectives with the sponsor's expectations is important but incorrect. Effective communication is required to achieve or maintain alignment.\n\nImplementing strict control measures does not address the sponsor's unhappiness.",
+      "difficulty": "Difficult",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 32,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.14.40.png"
+      ],
+      "caseStudy": null,
+      "stem": "A major manufacturing corporation is launching a lucrative new initiative that must meet strict internal and external regulations and policies. In preparation, the organization has conducted numerous surveys and collected valuable data to guide the management of the project. The project manager needs to ensure the organization is effectively governing the project.\n\nWhat should the project manager do?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Implement a project charter to formalize the project manager’s authority to access and apply organizational data."
+        },
+        {
+          "key": "B",
+          "text": "Organize a resource management plan to identify necessary resources and ensure they meet all internal policies."
+        },
+        {
+          "key": "C",
+          "text": "Examine the organizational process assets (OPAs) to define the structure, rules, procedures, and policies that the project must follow."
+        },
+        {
+          "key": "D",
+          "text": "Use work performance data to analyze key performance indicators and ensure the project team is meeting internal regulations."
+        }
+      ],
+      "correct": "C",
+      "solutionLine": "C. Examine the organizational process assets (OPAs) to define the structure, rules, procedures, and policies the project must follow.",
+      "explanation": "OPAs include any artifact, practice, or knowledge from the performing organizations involved in the project, including but not limited to policies, processes, procedures, and organizational knowledge repositories. OPAs are inputs to many of the project management processes and guide and influence the management of the project.\n\nThe other options are incorrect:\n\nThe project charter is specific to the project and does not include all relevant organizational policies and resources.The creation of a project charter is vital to the functionality of the project team and the defining of the project manager’s authority, but it does not inherently provide the project manager with the relevant data and information. The project manager must use the authority granted to them by the project charter to access and leverage the organizational process assets and provide their team with the necessary information.\n\nThe project team may utilize the OPAs when creating the resource management plan to ensure that all selected resources are in line with internal and external policies and adhere to the findings of the data collected. The resource management plan does not inherently guarantee effective governance on its own.\n\nWork performance data from past and current projects may be included in the OPAs, but it must be analyzed alongside other artifacts and data to understand the whole scope of the project’s management.",
+      "difficulty": "Difficult",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 33,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.14.44.png"
+      ],
+      "caseStudy": null,
+      "stem": "During a daily coordination meeting, the project sponsor insists the project is on track, even though two milestones are already late. The clients stress that the continued setbacks may reduce their confidence in the project.\n\nWhat should the project manager do to reaffirm the client’s confidence?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Report any milestone delays to all stakeholders and explain the corrective actions taken to recover the schedule."
+        },
+        {
+          "key": "B",
+          "text": "Exclude milestone details from the review discussions and highlight only the positive aspects of progress."
+        },
+        {
+          "key": "C",
+          "text": "Support the sponsor’s statement to maintain confidence and explain plans to prevent potential milestone delays."
+        },
+        {
+          "key": "D",
+          "text": "Work with the teams responsible for the missed milestones to develop a strategy and keep the project on track."
+        }
+      ],
+      "correct": "A",
+      "solutionLine": "A. Report any milestone delays to all stakeholders and explain the corrective actions taken to recover the schedule.",
+      "explanation": "The project manager should practice transparent reporting to explain and implement corrective actions to tackle setbacks. Explaining corrective actions shows that the project manager is addressing the problem and taking steps to recover the schedule, which may bolster confidence in the team’s ability to course-correct.\n\nThe other options are incorrect.\n\nMisleading stakeholders erodes trust.\n\nHiding or avoiding real data reduces accountability. Plans to prevent future delays do not address missed milestones.\n\nAlthough working with teams to address delays is essential, this option doesn’t address the immediate problem of reaffirming the client’s confidence",
+      "difficulty": "Difficult",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 34,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.14.48.png"
+      ],
+      "caseStudy": null,
+      "stem": "A construction team is facing scrutiny because materials were repeatedly over-ordered in past projects, leading to waste and increased costs. The project sponsor advocates for efficient material management and waste reduction. Team members argue that ordering flexibility is key to preventing shortages, but the finance manager stresses budget constraints. The project manager must align project deliverables with stakeholder expectations while controlling costs.\n\nWhat should the project manager do?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Document risk thresholds and detailed material control strategies in the risk management plan for financial approval."
+        },
+        {
+          "key": "B",
+          "text": "Implement an inventory monitoring system that regularly compares planned usage with actual consumption."
+        },
+        {
+          "key": "C",
+          "text": "Facilitate stakeholder workshops to align expectations regarding acceptable material variance and efficiency targets."
+        },
+        {
+          "key": "D",
+          "text": "Apply a material requirements planning (MRP) system to forecast demand and automate materials ordering decisions."
+        }
+      ],
+      "correct": "D",
+      "solutionLine": "D. Apply a material requirements planning (MRP) system to forecast demand and automate materials ordering decisions.",
+      "explanation": "The project manager should use an MRP system to forecast demand. MRP is a proactive, automated tool that estimates material needs, prevents over-ordering, and aligns with both the sponsor’s efficiency demand and finance’s budget constraints. It directly addresses the problem in the stem.\n\nThe other options are incorrect.\n\nThe risk management plan defines processes for managing risks, not operational tools to forecast or control materials.It involves planning at the governance level, not resource control during execution.\n\nMonitoring actual versus planned activity is a reactive action, identifying waste only after it happens. It does not proactively prevent over-ordering or shortages.\n\nWorkshops alone do not solve the technical challenges of forecasting or controlling materials. They address perception, not the actual risk.",
+      "difficulty": "Expert",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 35,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.14.52.png"
+      ],
+      "caseStudy": null,
+      "stem": "A project manager is overseeing a controversial marketing project involving multiple vendors and stakeholders with strong opinions. The project manager wants to avoid conflicts that might hinder working relationships or delay the project's timeline.\n\nWhat approach should the project manager adopt?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Use predictive analytics to discover patterns and forecast future scenarios, fostering objectivity in stakeholder discussions."
+        },
+        {
+          "key": "B",
+          "text": "Facilitate a nominal group discussion to systematically gather input, ensuring that all ideas are considered."
+        },
+        {
+          "key": "C",
+          "text": "Compare stakeholder opinions using a multicriteria decision analysis technique to guide discussions systematically."
+        },
+        {
+          "key": "D",
+          "text": "Use a responsibility assignment matrix to define each stakeholder's responsibilities and prioritize their input during discussions."
+        }
+      ],
+      "correct": "B",
+      "solutionLine": "B. Facilitate a nominal group discussion to systematically gather input, ensuring that all ideas are considered.",
+      "explanation": "The nominal group technique is a structured method that was developed to address the challenges of chaotic and unproductive discussions, particularly among large groups or regarding fraught or controversial topics. This technique is intended to equalize participation and minimize the dominance of more vocal members, to ensure all ideas are considered before a discussion takes place. Using the nominal group technique facilitates group decision-making by gathering input in a systematic manner.\n\nThe other options are incorrect.\n\nAnalyzing patterns and historical data by using machine learning can be a useful tool for gathering and presenting data, but there is no guarantee that this will lead to a productive, conflict-free discussion. With so many strong opinions involved, objective data is useful to have available, but the project manager still needs to utilize other techniques to facilitate a productive discussion among stakeholders.\n\nMulticriteria decision analysis is a technique that utilizes a decision matrix to provide an analytical approach for establishing criteria to evaluate and rank many ideas. It is an effective tool for analyzing the ideas that are gathered through another method, such as the nominal group technique, but it does not inherently foster feedback or lead discussions.\n\nA responsibility assignment matrix is used to illustrate the connections between work packages or activities and project team members. It is a technique that is used to design the roles and workloads of members of the project team and does not have any bearing on facilitating discussions with external stakeholders.",
+      "difficulty": "Difficult",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 36,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.14.56.png"
+      ],
+      "caseStudy": null,
+      "stem": "A large civil construction project currently underway is subject to several different compliance requirements. The sponsor stresses that the project must be safeguarded from potential legal and financial repercussions resulting from noncompliance. The project manager needs to ensure that the project adheres to all compliance requirements.\n\nWhat strategy should the project manager take?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Prioritize each compliance requirement based on the due date of the response to ensure a deadline is not missed."
+        },
+        {
+          "key": "B",
+          "text": "Schedule an audit to catch any compliance requirements that might have been overlooked."
+        },
+        {
+          "key": "C",
+          "text": "Classify the compliance categories to address each area systematically, including safety, legal, and environmental."
+        },
+        {
+          "key": "D",
+          "text": "Survey stakeholders for input on control mechanisms that could be set up to ensure ongoing compliance throughout the project lifecycle."
+        }
+      ],
+      "correct": "B",
+      "solutionLine": "B. Schedule an audit to catch any compliance requirements that might have been overlooked.",
+      "explanation": "Audits will allow the project manager to capture any compliance requirements that may have been overlooked during the project's planning stage. Compliance must be monitored continuously.\n\nThe other options are less effective.\n\nFocusing only on deadlines is reactive and risks missing broader compliance obligations.\n\nClassifying the compliance categories to address each area systematically, including safety, legal, and environmental, will not address compliance issues.\n\nStakeholder surveys can help, but they are not a systematic compliance management strategy.",
+      "difficulty": "Expert",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 37,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.15.00.png"
+      ],
+      "caseStudy": null,
+      "stem": "A pharmaceutical company has assembled a project team to research and develop a groundbreaking new medication. Given the complexity and uncertainty of the development process, the project’s timeline and costs are likely to fluctuate significantly. As the project manager, you are responsible for selecting and implementing a contract before beginning the work.\n\nWhat type of contract would provide the necessary flexibility while minimizing financial risk for the client?",
+      "options": [
+        {
+          "key": "A",
+          "text": "A time and materials (T&M) contract."
+        },
+        {
+          "key": "B",
+          "text": "A fixed-price contract."
+        },
+        {
+          "key": "C",
+          "text": "A cost-reimbursable contract."
+        },
+        {
+          "key": "D",
+          "text": "A target-cost contract."
+        }
+      ],
+      "correct": "C",
+      "solutionLine": "C. A cost-reimbursable contract.",
+      "explanation": "A cost-reimbursable contract is well-suited for complex and uncertain projects because it allows for flexibility in adjusting to the changing needs and scope of the development effort. The client bears the actual costs incurred by the contractor, plus an agreed fee, which reduces the contractor's financial risk and encourages thorough exploration without fixed constraints. This approach also mitigates financial risk for the contractor and ensures the client only pays for actual work performed.\n\nThe other options are incorrect.\n\nWhile a T&M contract provides flexibility and is commonly used when scope is not fully determined, it does not effectively manage financial risk for the client.\n\nA fixed-price contract would not be appropriate in this scenario due to the project's inherent uncertainty. It would place an undue burden on the contractor to complete the project within a defined budget, leading to compromised quality or incomplete work if unforeseen challenges arise.\n\nA target-cost contract is typically used to motivate efficiency by sharing cost savings or overruns between the client and contractor. However, in this case, where the development timeline and costs are highly uncertain, this type of contract is less suitable.",
+      "difficulty": "Expert",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 38,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.15.05.png"
+      ],
+      "caseStudy": null,
+      "stem": "A project team is responsible for managing the construction of a new office building. The job will require using a contractor for a specialized part of the construction. The project's scope is clear, so the contractor should be able to provide an accurate estimate.\n\nWhat type of contract is suitable for this project?",
+      "options": [
+        {
+          "key": "A",
+          "text": "A fixed-price contract"
+        },
+        {
+          "key": "B",
+          "text": "A cost-reimbursable contract"
+        },
+        {
+          "key": "C",
+          "text": "A time and materials (T&M) contract"
+        },
+        {
+          "key": "D",
+          "text": "A target-cost contract"
+        }
+      ],
+      "correct": "A",
+      "solutionLine": "A. A fixed-price contract.",
+      "explanation": "Fixed-price contracts, which are common in construction projects, set a predetermined fee for a clearly defined scope of work. This agreement transfers the cost risk to the seller and offers budget predictability for the buyer. These contracts depend on an accurate estimate of the work involved.\n\nThe other options are incorrect.\n\nCost-reimbursable contracts pay the seller for the seller’s actual costs, plus a fee for the seller’s profit. This type of contract is used when the project scope is uncertain or the risk is high. It offers flexibility but carries the risk of escalating costs.\n\nIn T&M contracts, the buyer pays for time and materials actually used plus a profit margin. This type of contract is usually more suitable for smaller projects, or for when the scope is not clearly defined. It provides flexibility but requires close monitoring to control costs.\n\nTarget-cost contracts set a general target for the cost and specify provisions for sharing cost savings or overruns between buyer and seller. These contracts offer flexibility but require intense cooperation between the parties to monitor efficiency and cost, so they are more appropriate for highly complex projects.",
+      "difficulty": "Difficult",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 39,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.15.09.png"
+      ],
+      "caseStudy": null,
+      "stem": "An organization has a mandate to update its continuous improvement processes regularly, and it provides guidance through written methodologies and development approaches. Although these guides serve as a starting point, the project teams own their own processes, and they are responsible for making project-specific improvements. The project manager has to support the organization’s mandate for ongoing improvement while actively managing the current project.\n\nWhat should the project manager do in this scenario?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Schedule retrospectives at key milestones during the project to analyze current performance, identify issues, and implement improvements."
+        },
+        {
+          "key": "B",
+          "text": "Use quality assurance tools and techniques such as quality audits and failure analysis to ensure the project’s output will meet or exceed expectations."
+        },
+        {
+          "key": "C",
+          "text": "Hold daily coordination meetings with all team members to share feedback and keep the work of all parts of the team aligned for improvement."
+        },
+        {
+          "key": "D",
+          "text": "Update the organizational knowledge repositories with information such as financial performance, lessons learned, and other metrics."
+        }
+      ],
+      "correct": "A",
+      "solutionLine": "A. Schedule in-progress retrospectives at key milestones during the project to analyze current performance, identify issues, and implement improvements.",
+      "explanation": "An in-progress retrospective is a structured process conducted at various stages of the project life cycle to analyze current performance. When the team identifies issues at the in-progress postmortem, they can immediately implement improvements going forward.\n\nThe other options are incorrect.\n\nQuality assurance tools and techniques, such as quality audits and failure analysis, help ensure the quality of the product or the project’s end result, but their focus is on outcomes rather than continuous improvement of the process.\n\nHolding regular coordination meetings with all team members allows them to share feedback and align the work of the whole team, but maintaining that alignment does not in itself ensure continuous improvement.\n\nIt is important to update the organizational knowledge repositories regularly with relevant project information, but that is an administrative task of maintaining knowledge, not a task of examining processes for ways to improve them.",
+      "difficulty": "Expert",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 40,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.15.15.png"
+      ],
+      "caseStudy": null,
+      "stem": "A construction project is underway. The project manager is concerned about discrepancies between the minor milestones outlined in the project management plan and the order in which the vendor is actually completing them. After discussing it with the vendor, the project manager realizes that certain contingencies have affected the way the vendor has organized their work. However, these contingencies should not prevent the vendor from delivering on schedule.\n\nWhat should the project manager do next?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Proceed without changing the plan because the final delivery is still safe, and there is little value in formally documenting low-level exceptions."
+        },
+        {
+          "key": "B",
+          "text": "Adjust the project plan to align with the vendor’s work approach and integrate it with the vendor’s perspective and work outputs."
+        },
+        {
+          "key": "C",
+          "text": "Warn the vendor about potential penalties if deliverables are impacted, and  closely monitor the situation to determine if intervention is needed."
+        },
+        {
+          "key": "D",
+          "text": "Alert upper management about the deviation from the project management plan in case they decide to replace the vendor."
+        }
+      ],
+      "correct": "B",
+      "solutionLine": "B. Adjust the project plan to align with the vendor’s work approach and integrate it with the vendor’s perspective and work outputs.",
+      "explanation": "The desired outcome is that the project plans are integrated with the suppliers’ perspectives and work outputs. If differences emerge that do not affect the final deliverables, it is appropriate to adjust the project management plan as needed to align it with the vendor’s way of working.\n\nThe other options are incorrect.\n\nProceeding without changes might not cause problems as long as the final delivery is still safe. However, it would reduce the plan’s value as an accurate and authoritative source of information.\n\nWarning the vendor about penalties and monitoring with an expectation of intervening would risk micromanaging the vendor and disrespecting their expertise. It could also have the unintended effect of hampering the deliverable.\n\nAlerting upper management to this deviation from the project management plan might be appropriate, but raising an alarm about the vendor’s way of working might cause unnecessary stress and reflect poorly on the project manager’s own skills and judgment.",
+      "difficulty": "Expert",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 41,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.15.20.png"
+      ],
+      "caseStudy": null,
+      "stem": "A corporate restaurant chain has opened locations nationwide and needs to maintain food safety. They have encountered issues such as late deliveries, inadequately temperature-controlled transportation, and food contamination. The project manager must determine which issues require immediate attention.\n\nWhat should the project manager do?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Evaluate each issue separately and prioritize them according to their impact."
+        },
+        {
+          "key": "B",
+          "text": "Develop workarounds for unexpected problems such as food shortages and work with vendors to resolve them."
+        },
+        {
+          "key": "C",
+          "text": "Schedule reviews to determine which location has the highest safety record."
+        },
+        {
+          "key": "D",
+          "text": "Maximize revenue until the food security systems can manage the inevitable loss of revenue from food spoilage."
+        }
+      ],
+      "correct": "A",
+      "solutionLine": "A. Evaluate each issue separately and prioritize them according to their impact.",
+      "explanation": "Evaluating each issue individually and prioritizing by impact ensures that critical issues are addressed first, supporting effective decision-making and minimizing risks to the project.\n\nThe other options are incorrect.\n\nWhile developing workarounds addresses immediate problems, it does not ensure the project manager identifies which issues are most critical or allocates resources effectively.\n\nScheduling reviews to compare locations’ food safety records addresses only historical performance, not the current issues affecting the project. It does not help the project manager assess the impact of each ongoing problem or prioritize actions to address critical issues immediately.\n\nFocusing on maximizing revenue ignores the immediate operational issues affecting the project, such as food spoilage or delivery problems.",
+      "difficulty": "Difficult",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 42,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.15.25.png"
+      ],
+      "caseStudy": null,
+      "stem": "A project manager has created the stakeholder list for a complex multi-phase project and is deciding how to distribute information effectively to the customer and other key stakeholders. The project involves diverse stakeholder groups with varying information needs and communication preferences.\n\nWhat should the project manager do next?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Schedule regular face-to-face meetings with all stakeholders to ensure consistent communication and feedback."
+        },
+        {
+          "key": "B",
+          "text": "Establish standardized update distributions to all stakeholders including the customer to maintain transparency."
+        },
+        {
+          "key": "C",
+          "text": "Perform stakeholder analysis and develop a communications management plan based on identified needs."
+        },
+        {
+          "key": "D",
+          "text": "Review historical communication practices from projects and adapt methods for stakeholder requirements."
+        }
+      ],
+      "correct": "C",
+      "solutionLine": "C. Perform stakeholder analysis and develop a communications management plan based on identified needs.",
+      "explanation": "Effective stakeholder communication requires systematic analysis of each stakeholder's information needs, preferred communication methods, and influence levels before developing distribution strategies. A communications management plan ensures targeted, efficient communication that meets specific stakeholder requirements rather than generic approaches.\n\nThe other options are incorrect.\n\nScheduling meetings assumes all stakeholders need the same frequency and format without analysis.\n\nStandardized updates treats all stakeholders equally without considering their different information needs.\n\nHistorical reviews rely on past practices without analyzing current project's unique stakeholder requirements.",
+      "difficulty": "Difficult",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 43,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.15.30.png"
+      ],
+      "caseStudy": null,
+      "stem": "Construction of a luxury resort complex is underway. Midway through development, the CFO requests deferring high-cost features to reduce expenses. The project sponsor argues that these features are essential to ensure customer satisfaction and return on investment. The project team members are divided in their opinions.\n\nWhat should the project manager do?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Support the CFO and defer the most expensive features to control budget and ensure overall project success."
+        },
+        {
+          "key": "B",
+          "text": "Facilitate a workshop with the CFO and product sponsor to assess trade-offs using agreed-upon value metrics."
+        },
+        {
+          "key": "C",
+          "text": "Continue with the original plan because the scope baseline was approved and cannot be altered easily."
+        },
+        {
+          "key": "D",
+          "text": "Submit a change request for additional funding to cover the cost of the features in question."
+        }
+      ],
+      "correct": "B",
+      "solutionLine": "B. Facilitate a workshop with the CFO and product sponsor to assess trade-offs using agreed-upon value metrics.",
+      "explanation": "Aligning the stakeholders ensures that key decision-makers collaboratively evaluate the impact of potential trade-offs on project value. Remaining objective and aligned with organizational priorities and promoting balanced decisions that optimize both financial and strategic outcomes.\n\nThe other options are incorrect.\n\nFocusing on cost alone undermines long-term value delivery.\n\nRigid adherence to baseline ignores real business value.\n\nAsking for additional funding inflates the project in contrast to the originally planned budget.",
+      "difficulty": "Difficult",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 44,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.15.35.png"
+      ],
+      "caseStudy": null,
+      "stem": "A data center hardware manufacturer is designing a new component for enterprise environments. During a planning session, the project sponsor demands that the already tight schedule be shortened by two months to align with a new product launch. The engineering lead warns that critical path tasks cannot be reduced without cutting scope. The client insists that all features must remain in the final version.\n\nWhat should the project manager do?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Shorten the schedule as requested and reallocate resources from less critical tasks and projects."
+        },
+        {
+          "key": "B",
+          "text": "Perform a schedule compression analysis and present the trade-offs of fast-tracking to stakeholders."
+        },
+        {
+          "key": "C",
+          "text": "Agree with the engineering lead to protect schedule integrity and meet with the sponsor to explain the decision."
+        },
+        {
+          "key": "D",
+          "text": "Implement alternative solutions such as outsourcing tasks, hiring temporary staff, or automating processes."
+        }
+      ],
+      "correct": "B",
+      "solutionLine": "B. Perform a schedule compression analysis and present the trade-offs of fast-tracking to stakeholders.",
+      "explanation": "The project manager should perform a formal analysis of crashing/fast-tracking with trade-offs. Conducting a schedule compression analysis and presenting trade-offs for fast-tracking highlights potential risks, impacts on cost and quality, and supports informed, value-driven decision-making.\n\nThe other options are incorrect.\n\nReallocated resources would need to be trained on this new project, and schedule compression increases the risk of failure.\n\nIgnoring the sponsor's needs damages that relationship.\n\nAlternative solutions would take too long to implement and would do nothing to shorten an already tight schedule.",
+      "difficulty": "Difficult",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 45,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.15.38.png"
+      ],
+      "caseStudy": null,
+      "stem": "A construction project for a large commercial complex is underway. The project manager learns of a potential timber shortage from a trusted vendor. This shortage could potentially impact the project timeline and increase costs.\n\nWhat should the project manager do?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Develop a risk assessment matrix to evaluate risks, and appoint a dedicated risk manager to create a mitigation plan."
+        },
+        {
+          "key": "B",
+          "text": "Initiate a change request and record the outcome in the change log as a project document update."
+        },
+        {
+          "key": "C",
+          "text": "Use an iterative approach that combines qualitative and quantitative risk analyses to evaluate the risk."
+        },
+        {
+          "key": "D",
+          "text": "Establish relationships with multiple vendors to reduce dependency and minimize risks to the schedule and budget."
+        }
+      ],
+      "correct": "D",
+      "solutionLine": "D. Establish relationships with multiple vendors to reduce dependency and minimize risks to the schedule and budget.",
+      "explanation": "The project manager should create and apply an intervention strategy. Diversifying the supplier base helps mitigate potential risks from material shortages, delays, or price increases. It promotes continuity and stability in project execution by ensuring alternative sources are available if one vendor experiences issues.\n\nThe other options are less effective.\n\nWhile developing a risk assessment matrix and appointing a risk manager are valuable long-term practices, they do not resolve the current risk of a timber shortage or mitigate its direct impact on project cost and schedule.\n\nInitiating a change request may be necessary later, but it does not help the project manager mitigate the immediate risk of a timber shortage or prevent further timeline and cost impacts.\n\nPerforming risk analyses does not immediately address supply chain, timeline, and cost impediments.",
+      "difficulty": "Expert",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 46,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.15.43.png"
+      ],
+      "caseStudy": null,
+      "stem": "A national restaurant chain is facing competition from a new startup with franchise locations across multiple cities. Project stakeholders have assigned a project manager to address complex industry issues and eliminate obstacles that could hinder market share growth.\n\nWhich two actions should the project manager adopt? (Choose 2)",
+      "options": [
+        {
+          "key": "A",
+          "text": "Meet with the project team to identify the new market pressures and modify the project management plan accordingly."
+        },
+        {
+          "key": "B",
+          "text": "Perform a combined qualitative and quantitative risk analysis to evaluate potential risks."
+        },
+        {
+          "key": "C",
+          "text": "Identify and document all impediments, risks, and blockers, and review the list periodically."
+        },
+        {
+          "key": "D",
+          "text": "Plan workshops that encourage team collaboration and explore new ideas to optimize the customer experience."
+        },
+        {
+          "key": "E",
+          "text": "Conduct daily coordination meetings to review progress and address challenges as they arise."
+        }
+      ],
+      "correct": "C,E",
+      "solutionLine": "C, E",
+      "explanation": "C. Identify and document all impediments, risks, and blockers, and review the list periodically.\n\nE. Conduct daily coordination meetings to review progress and address challenges as they arise.\n\nThe project manager should regularly identify and document impediments to keep them visible to the team. Frequent monitoring and coordination meetings enable timely intervention, support proactive risk management, and prevent small challenges from escalating into major disruptions.\n\nThe other options are incorrect.\n\nWhile modifying the plan is important, it focuses on updating the project plan rather than proactively addressing the immediate market pressures. Simply meeting the team to adjust the plan does not ensure the timely resolution of critical issues.\n\nConducting risk analyses does not directly address immediate project challenges. While evaluating risks is valuable for planning, it does not mitigate the impact of current market pressures or obstacles.\n\nPlanning collaborative sessions does not directly address immediate market pressures or critical project challenges. Workshops encourage collaboration and the exploration of new ideas, which can lead to innovation and improve the overall customer experience, but they do not ensure timely action on urgent issues.",
+      "difficulty": "Expert",
+      "kind": "multi",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 47,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.15.46.png"
+      ],
+      "caseStudy": null,
+      "stem": "A vendor's delivery of key components is on the critical path. The vendor informs the project manager that delivery will be delayed by three weeks, but the project sponsor insists that the final deadline is non-negotiable. The procurement manager reminds the project manager about the penalties for late vendor deliveries. The client is concerned that the overall project launch is at risk of being postponed.\n\nWhat should the project manager do?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Accept the vendor’s delay and compress any internal tasks to protect the final delivery date."
+        },
+        {
+          "key": "B",
+          "text": "Assess the schedule impact and discuss recovery options with stakeholders and the vendor."
+        },
+        {
+          "key": "C",
+          "text": "Request a meeting with the vendor to negotiate accelerating the delivery without accruing additional costs."
+        },
+        {
+          "key": "D",
+          "text": "Review the approved vendor list to find a replacement and remove the penalty clause from the new contract."
+        }
+      ],
+      "correct": "B",
+      "solutionLine": "B. Assess the schedule impact and discuss recovery options with stakeholders and the vendor.",
+      "explanation": "The project manager should perform an impact analysis and collaborative recovery planning. Assessing schedule impacts and discussing recovery options with stakeholders and the vendor supports collaborative problem-solving, informed decision-making, and the development of feasible strategies to keep the project on track.\n\nThe other options are incorrect.\n\nAcceptance without review hides risks and impacts. Compressing internal tasks would impact quality as a result of overwork and pressure.\n\nForcing acceleration ignores feasibility and cost. The project manager should have a contract in place that states the price and delivery terms; there should be no additional cost for complying with the contract.\n\nA replacement supplier would need time to deliver the required components within the allotted budget.",
+      "difficulty": "Difficult",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 48,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.15.50.png"
+      ],
+      "caseStudy": null,
+      "stem": "A national retail chain has initiated a rebranding project. During an executive review of the project, stakeholders note that milestones are on track and costs are within baseline. The project sponsor warns that low-value features are being released before critical ones. Other stakeholders argue that the schedule was approved and should not change.\n\nWhat should the project manager do?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Maintain the current schedule to avoid re-baselining and to mitigate potential stakeholder dissatisfaction."
+        },
+        {
+          "key": "B",
+          "text": "Reassess backlog priorities with stakeholders to focus on features delivering the highest business value."
+        },
+        {
+          "key": "C",
+          "text": "Facilitate a meeting among all stakeholders to gather their input and attempt to reach a consensus."
+        },
+        {
+          "key": "D",
+          "text": "Log the concern as an issue but continue delivering the features according to the approved business plan."
+        }
+      ],
+      "correct": "B",
+      "solutionLine": "B. Reassess backlog priorities with stakeholders to focus on features delivering the highest business value.",
+      "explanation": "The project manager should facilitate reprioritization to align with business value.\n\nThe other options are incorrect.\n\nMaintaining the schedule without focusing on business value ignores essential value principles.\n\nMeeting with stakeholders does not guarantee a consensus will be reached, and it could impact the schedule.\n\nLogging the issue only postpones essential action while value concerns remain unaddressed.",
+      "difficulty": "Expert",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 49,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.15.53.png"
+      ],
+      "caseStudy": null,
+      "stem": "A project is at the stage of procurement negotiations, with agreements being worked out in preparation for signing a contract. A procurement team member who has the authority to sign contracts is leading the negotiations, but that team member needs support from the project manager.\n\nWhich two actions should the project manager perform to support the negotiations? (Choose 2)",
+      "options": [
+        {
+          "key": "A",
+          "text": "Report potential disputes as soon as possible and then escalate them to higher management for resolution."
+        },
+        {
+          "key": "B",
+          "text": "Maintain detailed records of all project activities, changes, and communications to use as reference for potential claims."
+        },
+        {
+          "key": "C",
+          "text": "Instruct the procurement team to limit communication with the contractor to minimize misunderstandings that might lead to legal disputes."
+        },
+        {
+          "key": "D",
+          "text": "Obtain enough basic legal training in contract law and claims management to understand contract terms and help handle disputes."
+        },
+        {
+          "key": "E",
+          "text": "Streamline the contract negotiation process by delaying the legal team's involvement until contract signing."
+        }
+      ],
+      "correct": "B,D",
+      "solutionLine": "B, D",
+      "explanation": "B. Maintain detailed records of all project activities, changes, and communications to use as reference for potential claims.\n\nD. Obtain enough basic legal training in contract law and claims management to understand contract terms and help handle disputes.\n\nMaintaining detailed records of all project activities, changes, and communications to use as reference for potential claims is key to providing evidence to support potential claims. By learning the basics of contract law terminology and claims management, the project manager can acquire the understanding needed to try to help resolve disputes before they escalate.\n\nThe other options are incorrect.\n\nImmediately escalating disputes for higher management to resolve would interfere with the negotiations and could damage the chances of success. A critical aspect of the project manager’s job is to recognize potential conflicts early and address them promptly to prevent escalation.\n\nInstructing the procurement team to limit communication with the contractor to prevent misunderstandings would be a mistake. The project manager should foster open and clear communication among all stakeholders to help minimize misunderstandings.\n\nThe procurement team’s legal knowledge is insufficient to handle contract negotiations. Establishing a strong working relationship with the organization’s legal team for guidance and support is essential.",
+      "difficulty": "Expert",
+      "kind": "multi",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 50,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.15.58.png"
+      ],
+      "caseStudy": null,
+      "stem": "During a release planning workshop, the client requests advancing the delivery of a high-value analytics dashboard. The dashboard was scheduled for a later phase because it depends on the infrastructure being at least partially stable. Developers argue that advancing it introduces integration risks, although business stakeholders insist that early insights are critical to maintaining market advantage.\n\nWhat should the project manager do?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Approve early delivery to satisfy business stakeholders and secure immediate competitive advantage."
+        },
+        {
+          "key": "B",
+          "text": "Maintain the original schedule because advancing delivery would disrupt baselines and add technical debt."
+        },
+        {
+          "key": "C",
+          "text": "Facilitate a trade-off analysis with stakeholders to evaluate delivering early value against integration risks."
+        },
+        {
+          "key": "D",
+          "text": "Meet with the development team to introduce incremental improvements to avoid major rework in the future."
+        }
+      ],
+      "correct": "C",
+      "solutionLine": "C. Facilitate a trade-off analysis with stakeholders to evaluate delivering early value against integration risks.",
+      "explanation": "The project manager should facilitate a conversation with stakeholders about value-risk trade-offs, enabling stakeholders to make informed decisions. Trade-off analysis promotes transparency, aligns stakeholder expectations, and helps ensure that project outcomes balance short-term gains with long-term stability.\n\nThe other options are incorrect.\n\nImmediate approval ignores integration risks.\n\nBlind adherence to baseline undermines value delivery.\n\nIntroducing incremental improvements to the development team would go against their best judgment.",
+      "difficulty": "Difficult",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 51,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.16.02.png"
+      ],
+      "caseStudy": null,
+      "stem": "Various project teams are working together on an agile project. During a portfolio review, the project sponsor observes that many delivery approaches, templates, and team practices have changed significantly from project to project. The sponsor is concerned that existing guidance and knowledge have changed several times and no longer reflect how work is actually being delivered.\n\nWhat should the project manager do?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Ensure that all team members have reliable online access to project information and attend all coordination meetings."
+        },
+        {
+          "key": "B",
+          "text": "Update the organizational process assets (OPAs) to ensure they remain effective and aligned with the company's goals."
+        },
+        {
+          "key": "C",
+          "text": "Encourage the teams to review the service level agreements (SLAs) and statement of work (SOW) relevant to the project."
+        },
+        {
+          "key": "D",
+          "text": "Refer the teams to historical information, knowledge repositories, and lessons learned logs from similar past projects."
+        }
+      ],
+      "correct": "B",
+      "solutionLine": "B. Update the organizational process assets (OPAs) to ensure they remain effective and aligned with the company's goals.",
+      "explanation": "Regularly updating OPAs ensures they remain effective and aligned with the company's goals and helps maintain consistency across projects and project teams. Updating OPAs ensures that there is clarity on how changes are approved, documented, and communicated. This directly addresses the sponsor's concern by demonstrating a deliberate effort to better manage changes, incorporate improvements into established processes, and show alignment between project outputs and organizational goals.\n\nThe other options are incorrect.\n\nThe sponsor’s concern is about the number of changes, not about access to information\n\nReviewing SLAs or SOW could provide insights into the project scope and deliverables, but it does not address the underlying concern about frequent changes.\n\nHistorical information and lessons learned logs are valuable for decision-making and avoiding past mistakes, but do not address project changes.",
+      "difficulty": "Difficult",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 52,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.16.06.png"
+      ],
+      "caseStudy": null,
+      "stem": "A large construction company is in the early stages of a hybrid project that combines predictive infrastructure work with adaptive software development. Stakeholders are complaining that the early phases of the project show little visible value because most of the effort is going into infrastructure work, and they are asking for earlier business-facing results. The team lead for the infrastructure work argues that the phase sequencing has been planned and should not change.\n\nWhat should the project manager do?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Reevaluate sequencing with stakeholders to assess earlier delivery of high-value features without compromising stability."
+        },
+        {
+          "key": "B",
+          "text": "Defend the original sequencing because infrastructure completion is essential to complete before releasing user features."
+        },
+        {
+          "key": "C",
+          "text": "Emphasize the progress achieved on infrastructure in reports to reassure executives that the project is on track."
+        },
+        {
+          "key": "D",
+          "text": "Facilitate a workshop with the infrastructure team to determine how a change in sequence would impact the project."
+        }
+      ],
+      "correct": "A",
+      "solutionLine": "A. Reevaluate sequencing with stakeholders to enable earlier delivery of high-value features without jeopardizing stability.",
+      "explanation": "The project manager should facilitate a re-sequencing workshop to optimize both technical and business outcomes. By collaborating with stakeholders to identify opportunities to deliver high-value features earlier, the project manager helps maximize value while maintaining system stability and minimizing delivery risks. The project manager should facilitate a structured discussion with stakeholders and the team to brainstorm how to reprioritize work, identify trade-offs and risks, and reach consensus.\n\nThe other options are incorrect.\n\nDefending the sequencing without discussion is a reactionary response to stakeholder expectations for earlier value.\n\nReporting progress does not address the lack of visible value.\n\nThe infrastructure team should not have the final say in the delivery order.",
+      "difficulty": "Expert",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 53,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.16.11.png"
+      ],
+      "caseStudy": null,
+      "stem": "Some team members from a newly formed team are constantly arguing. The project manager aims to implement a resolution strategy that has the team’s full support and leads to effective conflict resolution.\n\nWhat should the project manager do?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Speak privately with each team member to address their individual concerns without involving the entire team."
+        },
+        {
+          "key": "B",
+          "text": "Negotiate a compromise on the issue that satisfies all parties involved so the next delivery deadline can be met."
+        },
+        {
+          "key": "C",
+          "text": "Engage the team in constructive dialogue to understand the issue and consider different insights and perspectives."
+        },
+        {
+          "key": "D",
+          "text": "Advise the team to treat differences of opinion as opportunities for increased conversation and creativity."
+        }
+      ],
+      "correct": "C",
+      "solutionLine": "C. Engage the team in constructive dialogue to understand the issue and consider different insights and perspectives.",
+      "explanation": "The team’s direct collaboration is necessary to understand the situation correctly, and the expectation is that incorporating all viewpoints will result in consensus and their full commitment. Open dialogue helps create a shared understanding, builds trust, and fosters collaboration while minimizing misunderstandings. Open communication encourages team members to express themselves freely, enabling them to feel heard and valued.\n\nThe other options are incorrect.\n\nSpeaking with each team member privately to respectfully address their individual concerns is an appropriate first step, but that by itself is unlikely to resolve the whole team’s issues, and it might not result in any progress.\n\nConvincing the parties involved to agree to a compromise until the next deadline might be an effective short-term strategy, but it does not address the underlying causes or help create a long-term solution.\n\nAdvising the team to treat differences of opinion as opportunities for increased creativity is good advice and should be part of the group norms, but simply dispensing advice is not an effective way to tackle the underlying problems and does not give team members a strategy for changing their approach.",
+      "difficulty": "Difficult",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 54,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.16.15.png"
+      ],
+      "caseStudy": null,
+      "stem": "A Scrum team noticed a trend of work spilling over for the last several sprints. The root cause of this has been identified as the code review task. This bottleneck appears to occur because the team is dependent on an external expert.\n\nWhat should the project manager do first?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Assess the code review bottleneck, document the issue, and extend the sprint duration to absorb the impact"
+        },
+        {
+          "key": "B",
+          "text": "Evaluate team skills and facilitate targeted upskilling to eliminate reliance on external code reviewers"
+        },
+        {
+          "key": "C",
+          "text": "Identify and onboard a secondary expert resource to provide redundancy and reduce the risk of delays"
+        },
+        {
+          "key": "D",
+          "text": "Collaborate with the team to internalize the review process and immediately discontinue external support"
+        }
+      ],
+      "correct": "B",
+      "solutionLine": "B. Evaluate team skills and facilitate targeted upskilling to eliminate reliance on external code reviewers",
+      "explanation": "The best long-term solution is to build internal capability. By training the team, the dependency is removed, future sprints are protected, and team autonomy is improved — fully aligned with agile principles.\n\nAll other options are incorrect.\n\nExtending the sprint is a workaround, not a solution. It does not address the root cause (dependency), and undermines agile timeboxing.\n\nAdding another external reviewer adds complexity and does not build sustainable team capability.\n\nAbruptly stopping the external expert's involvement without ensuring the team is ready risks quality and delivery performance.",
+      "difficulty": "Difficult",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 55,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.16.20.png"
+      ],
+      "caseStudy": null,
+      "stem": "Drag and drop the stages of the Tuckman Ladder of team development to place them in the correct order.",
+      "options": [
+        {
+          "key": "A",
+          "text": "Adjourning"
+        },
+        {
+          "key": "B",
+          "text": "Storming"
+        },
+        {
+          "key": "C",
+          "text": "Forming"
+        },
+        {
+          "key": "D",
+          "text": "Norming"
+        },
+        {
+          "key": "E",
+          "text": "Performing"
+        }
+      ],
+      "correct": "C,B,D,E,A",
+      "solutionLine": "",
+      "explanation": "The Tuckman Ladder provides a framework for understanding the stages of team development and the importance of trust and collaboration at each stage. By recognizing these stages, project leaders can implement strategies to support their teams through each phase, ultimately leading to more effective and successful project outcomes.\n\n1. Forming: The project team first comes together. Members get to know each other’s name, position on the project team, skill sets, and other pertinent background information. This might occur at the kickoff meeting.\n\n2. Storming: Project team members jockey for positions on the team. This phase is where people’s personalities, strengths, and weaknesses start to come out. There might be some conflict or struggle as people figure out how to work together. Storming might go on for some time or pass relatively quickly.\n\n3. Norming: The project team starts to function as a collective body. At this point, project team members know their places on the team and how they relate to and interface with all the other members. They are starting to work together. There might be some challenges as work progresses, but these issues are resolved quickly, and the project team moves into action.\n\n4. Performing: The project team becomes operationally efficient. This is the mature project team stage. Project teams that have been together for a while are able to develop synergy. By working together, project team members accomplish more and produce a high-quality product.\n\n5. Adjourning: The project team completes the work and disperses to work on other things. If the project team has formed good relationships, some project team members might be sad about leaving the project team.",
+      "difficulty": "",
+      "kind": "match",
+      "media": [],
+      "notes": "Drag-and-drop ordering. Options listed in the on-screen draggable order; 'correct' gives the keys in slot order First..Fifth: First=Forming (C), Second=Storming (B), Third=Norming (D), Fourth=Performing (E), Fifth=Adjourning (A). No Correct Answer panel and no difficulty level shown in screenshot.",
+      "match": {
+        "targets": [
+          "First",
+          "Second",
+          "Third",
+          "Fourth",
+          "Fifth"
+        ],
+        "choices": [
+          {
+            "key": "A",
+            "text": "Adjourning"
+          },
+          {
+            "key": "B",
+            "text": "Storming"
+          },
+          {
+            "key": "C",
+            "text": "Forming"
+          },
+          {
+            "key": "D",
+            "text": "Norming"
+          },
+          {
+            "key": "E",
+            "text": "Performing"
+          }
+        ],
+        "answer": [
+          "C",
+          "B",
+          "D",
+          "E",
+          "A"
+        ]
+      }
+    },
+    {
+      "number": 56,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.16.26.png"
+      ],
+      "caseStudy": null,
+      "stem": "A local government is launching a community redevelopment project that will involve stakeholders with varying levels of influence and involvement. With so many interested parties and conflicting opinions, the project manager needs to identify the stakeholders who should be involved in governance decisions and engage them to ensure that the project can progress efficiently.\n\nHow should the project manager proceed?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Schedule weekly community review meetings with open attendance to solicit opinions from all relevant stakeholders, regardless of involvement."
+        },
+        {
+          "key": "B",
+          "text": "Implement a predictive approach and prioritize the involvement of control boards, committees, and other high-influence stakeholders."
+        },
+        {
+          "key": "C",
+          "text": "Execute agreed-upon processes, protocols, and team agreements to categorize stakeholders based on analyzing past projects."
+        },
+        {
+          "key": "D",
+          "text": "Organize a governance board and analyze the specific needs and context of the project to determine which stakeholders should be involved."
+        }
+      ],
+      "correct": "D",
+      "solutionLine": "D Organize a governance board and analyze the specific needs and context of the project to determine which stakeholders should be involved.",
+      "explanation": "The unique needs and context of the project should be taken into account when determining which stakeholders should have high-level involvement in the project and which would be more effectively engaged at specific points in the project. Establishing a governance board enables the project team to connect with key stakeholders and ensures that the project is in line with critical expectations.\n\nThe other options are incorrect.\n\nInvolving all parties in routine governance runs the risk of creating conflict and delaying the project. A project with such widespread influence requires the oversight of key stakeholders to ensure progress stays on schedule and meets the broader project goals. Community review meetings with open attendance should be held at specific times when broader input is beneficial to refining the goals and results of the project.\n\nAlthough it is important to engage control boards, committees, and other high-influence stakeholders and include them in the governance process, there may be other stakeholders whose input is crucial to the effective delivery of the project. The project manager must thoroughly analyze the unique needs and priorities of the project to identify any additional key stakeholders whose expertise or requirements will benefit the governance of the project.\n\nAll processes, protocols, and team agreements must be made with regard to the current project and with the agreement of key stakeholders. Past projects can be useful for gathering data, but it is not possible to identify relevant stakeholders based on past experience alone.",
+      "difficulty": "Difficult",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 57,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.16.30.png"
+      ],
+      "caseStudy": null,
+      "stem": "During a project's execution, a vendor delivers components that pass functional tests but fail durability checks. To avoid delay, the project sponsor wants to accept the components. The client threatens to reject final delivery if these issues persist. The procurement manager notes that durability performance is an integral part of the contract.\n\nWhat should the project manager do?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Reject delivery and enforce the durability requirements specified in the contract agreement."
+        },
+        {
+          "key": "B",
+          "text": "Accept the components to maintain the schedule although durability requirements are not satisfied."
+        },
+        {
+          "key": "C",
+          "text": "Negotiate with the vendor to accept the components as-is with minor concessions to reduce conflict."
+        },
+        {
+          "key": "D",
+          "text": "Accept the components as-is and increase the length of the end-user product warranty."
+        }
+      ],
+      "correct": "A",
+      "solutionLine": "A. Reject delivery and enforce the durability requirements specified in the contract agreement.",
+      "explanation": "The project manager should enforce the quality standards in the contract. Rejecting non-compliant deliveries protects the organization’s interests, enforces accountability, and maintains quality and reliability in line with agreed-upon expectations.\n\nThe other options are incorrect.\n\nAcceptance of inferior materials undermines contractual quality commitments.\n\nAcceptance of components as-is by making Informal concessions can potentially lead to rejection later on.\n\nAccepting the components and increasing the length of the warranty risks future costs and damage to the company's reputation.",
+      "difficulty": "Difficult",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 58,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.16.34.png"
+      ],
+      "caseStudy": null,
+      "stem": "A software development company is designing a new application for a management firm that oversees properties across multiple locations. The project manager has implemented an incremental life cycle approach to prioritize customer-requested features. The project manager has compiled these user stories and their estimated values into a table.\n\n| Feature | User Story | Estimated Story Points |\n| Cost Analysis | As the property manager, I want to be able to determine profitability. | 4 |\n| Multiple reservations per guest | As the reservation manager, I want to be able to block time for multiple units. | 3 |\n| Capacity overview | As the reservation manager, I want to be able to see capacity at a glance. | 2 |\n| Property check-in/out | As the front desk clerk, I want to be able to check guests in and out quickly. | 2 |\n| Scheduling calendar | As the maintenance manager, I want to be able to prioritize repair and maintenance work. | 1 |\n\nWhat feature should the project manager develop and implement first? (Refer to the table)",
+      "options": [
+        {
+          "key": "A",
+          "text": "Capacity overview"
+        },
+        {
+          "key": "B",
+          "text": "Property check-in/out"
+        },
+        {
+          "key": "C",
+          "text": "Scheduling calendar"
+        },
+        {
+          "key": "D",
+          "text": "Cost analysis"
+        }
+      ],
+      "correct": "D",
+      "solutionLine": "D. Cost analysis",
+      "explanation": "The feature the project manager should develop and implement first is \"Cost Analysis\", corresponding to the user story: \"As the property manager, I want to be able to determine profitability.\"\n\nThis is based on prioritization by estimated story points, where higher story points usually signify features with greater value or complexity. In this table, \"Cost Analysis\" has the highest estimated story points at 4, making it the first feature to focus on in an incremental life cycle approach.\n\nThe other options are less effective.\n\nThe user stories from the reservation manager, front desk clerk, and maintenance manager have all been assigned fewer story points, so their features should be implemented into the new software in order of estimated story points.",
+      "difficulty": "Expert",
+      "kind": "standard",
+      "media": [
+        {
+          "file": "q58-user-stories-table.png",
+          "alt": "Table of features, user stories and estimated story points (Cost Analysis 4, Multiple reservations 3, Capacity overview 2, Check-in/out 2, Scheduling calendar 1)",
+          "placement": "CONTENT"
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "number": 59,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.16.37.png"
+      ],
+      "caseStudy": null,
+      "stem": "A stakeholder expresses concern that the project may be falling behind schedule, based on informal conversations with team members. While some tasks have experienced minor delays, these are within allowable float and do not affect the critical path. The project manager follows up immediately and walks the stakeholder through the most recent status report, demonstrating that the overall timeline remains intact.\n\nWhat should the project manager do next?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Send an official communication stating that project status must only be shared through formal channels."
+        },
+        {
+          "key": "B",
+          "text": "Add the concerned stakeholder to the distribution list for all upcoming status updates."
+        },
+        {
+          "key": "C",
+          "text": "Review the communications management plan with the team and update it if gaps or informal leaks are identified."
+        },
+        {
+          "key": "D",
+          "text": "Update the format of status reports to emphasize delays with potential critical path impact."
+        }
+      ],
+      "correct": "C",
+      "solutionLine": "C. Review the communications management plan with the team and update it if gaps or informal leaks are identified.",
+      "explanation": "This is the most structured and preventive approach. It ensures that accurate project information is shared appropriately, avoids misinterpretation, and reinforces communication protocols within the team and with stakeholders.\n\nAll other options are incorrect.\n\nWhile control over communication is important, it may come across as overly rigid or defensive, and doesn’t address the root cause of miscommunication.\n\nAdding the stakeholder to a mailing list helps transparency, but does not prevent similar future misunderstandings if the broader communication plan is not revisited.\n\nEmphasizing delay details in the report might confuse stakeholders by highlighting non-critical slips unnecessarily, and doesn’t address the breakdown in informal communication practices.",
+      "difficulty": "Expert",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    },
+    {
+      "number": 60,
+      "sourceFiles": [
+        "Screenshot 2026-10-14 at 00.16.41.png"
+      ],
+      "caseStudy": null,
+      "stem": "An architectural firm has designed a building to withstand hurricane conditions. During design testing, the client requests higher performance standards than the standards documented in the requirements. The quality assurance lead warns this would require redesigning the building. To preserve goodwill with the client, the sponsor puts pressure on the project manager to agree. The project management office insists quality changes must go through governance.\n\nWhat should the project manager do?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Approve higher standards to satisfy the client, although redesign may delay delivery and raise costs."
+        },
+        {
+          "key": "B",
+          "text": "Deny the request to protect baseline scope and communicate with the client to monitor satisfaction."
+        },
+        {
+          "key": "C",
+          "text": "Facilitate an impact analysis and submit the new standards through a formal change control process."
+        },
+        {
+          "key": "D",
+          "text": "Explain to the client how the standards used in the design are sufficient to achieve the client's goals."
+        }
+      ],
+      "correct": "C",
+      "solutionLine": "C. Facilitate an impact analysis and submit the new standards through a formal change control process.",
+      "explanation": "The project manager should perform a formal change control process with analysis before acceptance. This action ensures that the implications of adopting new standards are thoroughly evaluated before implementation\n\nThe other options are incorrect.\n\nApproval without analysis creates uncontrolled scope and quality creep.\n\nStrict denial ignores potential value and harms trust.\n\nTrying to convince the client to accept the current standards when they want something more is likely to be unsuccessful.",
+      "difficulty": "Difficult",
+      "kind": "standard",
+      "media": [],
+      "notes": ""
+    }
+  ]
+}

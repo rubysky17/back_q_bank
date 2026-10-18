@@ -3,9 +3,11 @@ import { z } from 'zod';
 
 import type { Db } from '../../db/client';
 import {
+  caseStudies,
   DIFFICULTIES,
   domains,
   examQuestions,
+  MEDIA_PLACEMENTS,
   QUESTION_TYPES,
   questions,
   topics,
@@ -18,10 +20,23 @@ import { searchKey } from '../../lib/slugify';
 import { paginationFields, zId, zName } from '../../lib/validation';
 import { getQuestionTypeHandler } from './question-types';
 
+const mediaSchema = z.strictObject({
+  /** Relative to the API origin (`/media/...`) or an absolute https URL. */
+  url: z.string().trim().regex(/^(\/media\/|https:\/\/)\S+$/).max(500),
+  alt: z.string().trim().max(300),
+  placement: z.enum(MEDIA_PLACEMENTS),
+  width: z.number().int().positive().max(20_000),
+  height: z.number().int().positive().max(20_000),
+});
+
 export const createQuestionSchema = z.strictObject({
   topicId: zId(),
   /** Must belong to `topicId`. Send null to clear it on update. */
   domainId: zId().nullish(),
+  /** Shared scenario; must belong to `topicId`. Send null to clear it on update. */
+  caseStudyId: zId().nullish(),
+  /** Images shown with the stem (CONTENT) or the explanation (EXPLANATION). */
+  media: z.array(mediaSchema).max(10).optional(),
   /** Defaults to SINGLE_CHOICE (the only supported type for now). */
   type: z.enum(QUESTION_TYPES).optional(),
   /** Defaults to MEDIUM. */
@@ -57,10 +72,12 @@ const questionColumns = {
   ownerId: questions.ownerId,
   topicId: questions.topicId,
   domainId: questions.domainId,
+  caseStudyId: questions.caseStudyId,
   type: questions.type,
   difficulty: questions.difficulty,
   content: questions.content,
   explanation: questions.explanation,
+  media: questions.media,
   definition: questions.definition,
   version: questions.version,
   createdAt: questions.createdAt,
@@ -137,6 +154,7 @@ export async function createQuestion(
     input.definition,
   );
   await assertTopicAndDomain(db, input.topicId, input.domainId ?? null);
+  await assertCaseStudy(db, input.topicId, input.caseStudyId ?? null);
 
   const [{ id }] = await db
     .insert(questions)
@@ -144,11 +162,13 @@ export async function createQuestion(
       ownerId: user.id,
       topicId: input.topicId,
       domainId: input.domainId ?? null,
+      caseStudyId: input.caseStudyId ?? null,
       type,
       difficulty: input.difficulty,
       content: input.content,
       searchText: searchKey(input.content),
       explanation: input.explanation,
+      media: input.media,
       definition,
     })
     .returning({ id: questions.id });
@@ -174,6 +194,9 @@ export async function updateQuestion(
   const domainId =
     input.domainId === undefined ? current.domainId : input.domainId;
   await assertTopicAndDomain(db, topicId, domainId);
+  const caseStudyId =
+    input.caseStudyId === undefined ? current.caseStudyId : input.caseStudyId;
+  await assertCaseStudy(db, topicId, caseStudyId);
 
   const type = input.type ?? current.type;
   if (type !== current.type && input.definition === undefined) {
@@ -192,12 +215,14 @@ export async function updateQuestion(
     .set({
       topicId,
       domainId,
+      caseStudyId,
       type,
       difficulty: input.difficulty,
       content: input.content,
       searchText:
         input.content === undefined ? undefined : searchKey(input.content),
       explanation: input.explanation,
+      media: input.media,
       definition,
       version: sql`${questions.version} + 1`,
     })
@@ -217,6 +242,25 @@ export async function removeQuestion(db: Db, user: AuthUser, id: string) {
     );
   }
   await db.delete(questions).where(eq(questions.id, id));
+}
+
+async function assertCaseStudy(
+  db: Db,
+  topicId: string,
+  caseStudyId: string | null,
+) {
+  if (!caseStudyId) return;
+  const [caseStudy] = await db
+    .select({ topicId: caseStudies.topicId })
+    .from(caseStudies)
+    .where(eq(caseStudies.id, caseStudyId));
+  if (!caseStudy) throw AppError.notFound('Case study');
+  if (caseStudy.topicId !== topicId) {
+    throw AppError.badRequest(
+      'CASE_STUDY_TOPIC_MISMATCH',
+      'The case study does not belong to the question topic',
+    );
+  }
 }
 
 async function assertTopicAndDomain(

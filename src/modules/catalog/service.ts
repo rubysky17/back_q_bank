@@ -1,12 +1,16 @@
-import { and, asc, desc, eq, type SQL, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, type SQL, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
 import type { Db } from '../../db/client';
 import {
   attempts,
+  type Difficulty,
+  DIFFICULTIES,
+  domains,
   examQuestions,
   examSections,
   exams,
+  questions,
   topics,
   users,
 } from '../../db/schema';
@@ -31,6 +35,7 @@ const catalogColumns = {
   title: exams.title,
   description: exams.description,
   durationMinutes: exams.durationMinutes,
+  breakMinutes: exams.breakMinutes,
   passingScore: exams.passingScore,
   publishedAt: exams.publishedAt,
   topicId: topics.id,
@@ -61,6 +66,42 @@ function toCatalogExam<
     ...exam,
     topic: { id: topicId, name: topicName },
     owner: { id: ownerId, fullName: ownerName },
+  };
+}
+
+/** Question counts per domain and per difficulty, from (domain, difficulty) groups. */
+function breakdownOf(
+  mix: {
+    domainId: string | null;
+    domainName: string | null;
+    difficulty: Difficulty;
+    questionCount: number;
+  }[],
+) {
+  const byDomain = new Map<
+    string | null,
+    { domainId: string | null; name: string; questionCount: number }
+  >();
+  const byDifficulty = new Map<Difficulty, number>();
+  for (const row of mix) {
+    const domain = byDomain.get(row.domainId) ?? {
+      domainId: row.domainId,
+      name: row.domainName ?? 'Unassigned',
+      questionCount: 0,
+    };
+    domain.questionCount += row.questionCount;
+    byDomain.set(row.domainId, domain);
+    byDifficulty.set(
+      row.difficulty,
+      (byDifficulty.get(row.difficulty) ?? 0) + row.questionCount,
+    );
+  }
+  return {
+    domains: [...byDomain.values()],
+    difficulties: DIFFICULTIES.flatMap((difficulty) => {
+      const questionCount = byDifficulty.get(difficulty);
+      return questionCount ? [{ difficulty, questionCount }] : [];
+    }),
   };
 }
 
@@ -97,6 +138,7 @@ export async function getCatalogExam(db: Db, user: AuthUser, examId: string) {
       title: examSections.title,
       order: examSections.order,
       instructions: examSections.instructions,
+      durationMinutes: examSections.durationMinutes,
       questionCount: sql<number>`(SELECT count(*) FROM ${examQuestions} WHERE ${qualified(examQuestions.sectionId)} = ${qualified(examSections.id)})`,
     })
     .from(examSections)
@@ -106,6 +148,19 @@ export async function getCatalogExam(db: Db, user: AuthUser, examId: string) {
       asc(examSections.createdAt),
       asc(examSections.id),
     );
+  const mix = await db
+    .select({
+      domainId: domains.id,
+      domainName: domains.name,
+      difficulty: questions.difficulty,
+      questionCount: count(),
+    })
+    .from(examQuestions)
+    .innerJoin(questions, eq(questions.id, examQuestions.questionId))
+    .leftJoin(domains, eq(domains.id, questions.domainId))
+    .where(eq(examQuestions.examId, examId))
+    .groupBy(domains.id, questions.difficulty)
+    .orderBy(asc(domains.order));
   const inProgress = await findInProgress(db, user.id, examId);
 
   const { totalPoints, myAttemptCount, ...summary } = exam;
@@ -113,6 +168,7 @@ export async function getCatalogExam(db: Db, user: AuthUser, examId: string) {
     ...toCatalogExam(summary),
     totalPoints,
     sections,
+    breakdown: breakdownOf(mix),
     myAttemptCount,
     inProgressAttemptId: inProgress?.id ?? null,
   };

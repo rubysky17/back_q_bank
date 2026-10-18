@@ -25,6 +25,8 @@
     "db:seed:remote": "tsx scripts/seed.ts --remote",
     "db:admin": "tsx scripts/seed.ts --admin-only",
     "db:admin:remote": "tsx scripts/seed.ts --admin-only --remote",
+    "db:import:pmp": "tsx scripts/import-pmp.ts",
+    "db:import:pmp:remote": "tsx scripts/import-pmp.ts --remote",
     "db:reset": "rm -rf .wrangler/state && wrangler d1 migrations apply DB --local && tsx scripts/seed.ts",
     "cf:types": "wrangler types src/worker-configuration.d.ts"
   },

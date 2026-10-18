@@ -1,5 +1,7 @@
 import { AppError } from '../../../lib/app-error';
 import type { QuestionType } from '../../../db/schema';
+import { dragDropHandler } from './drag-drop.handler';
+import { multipleChoiceHandler } from './multiple-choice.handler';
 import type { QuestionTypeHandler } from './question-type.handler';
 import { singleChoiceHandler } from './single-choice.handler';
 
@@ -12,6 +14,8 @@ const handlers: Partial<
   Record<QuestionType, QuestionTypeHandler<any, any, any, any>>
 > = {
   SINGLE_CHOICE: singleChoiceHandler,
+  MULTIPLE_CHOICE: multipleChoiceHandler,
+  DRAG_DROP: dragDropHandler,
 };
 
 export const supportedQuestionTypes = Object.keys(handlers) as QuestionType[];
