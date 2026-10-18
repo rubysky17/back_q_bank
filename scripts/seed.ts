@@ -1,7 +1,9 @@
 /**
  * Idempotent seed for D1: `npm run db:seed` (local) or `npm run db:seed:remote` (production).
- * - The single account (ADMIN_EMAIL, ADMIN_NAME) — the same row that /auth/login uses
+ * - The ADMIN account (ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_NAME). Its password hash is (re)set on every
+ *   run, so this is also how to change the admin password.
  * - Topic PMP with its 3 domains, 9 single-choice questions and a published 3-section mock exam
+ *   (skipped with `--admin-only`)
  *
  * Builds one SQL file and runs it with `wrangler d1 execute`. Re-running skips what already exists.
  */
@@ -11,12 +13,16 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 
 import { config } from 'dotenv';
 
+import { hashPassword } from '../src/auth/password';
+import { configSchema } from '../src/env';
 import { searchKey } from '../src/lib/slugify';
 import { uuidv7 } from '../src/lib/uuidv7';
 
 config({ quiet: true });
 
 const remote = process.argv.includes('--remote');
+const adminOnly = process.argv.includes('--admin-only');
+const ADMIN_PASSWORD_MIN_LENGTH = 12;
 
 function requireEnv(name: string): string {
   const value = process.env[name]?.trim();
@@ -201,8 +207,19 @@ const QUESTIONS: {
 
 const EXAM_TITLE = 'PMP Mock Test 1';
 
-function buildSql(): string {
+async function buildSql(): Promise<string> {
   const email = requireEnv('ADMIN_EMAIL').toLowerCase();
+  const password = requireEnv('ADMIN_PASSWORD');
+  if (password.length < ADMIN_PASSWORD_MIN_LENGTH) {
+    throw new Error(
+      `ADMIN_PASSWORD must be at least ${ADMIN_PASSWORD_MIN_LENGTH} characters`,
+    );
+  }
+  // Same cost as the Worker (PASSWORD_HASH_ITERATIONS or its default).
+  const iterations = configSchema.shape.PASSWORD_HASH_ITERATIONS.parse(
+    process.env.PASSWORD_HASH_ITERATIONS,
+  );
+  const passwordHash = await hashPassword(password, iterations);
   const fullName = process.env.ADMIN_NAME?.trim() || 'Admin';
   const now = Date.now();
   const owner = `(SELECT "id" FROM "User" WHERE "email" = ${lit(email)})`;
@@ -211,8 +228,9 @@ function buildSql(): string {
   const sql: string[] = [];
 
   sql.push(`INSERT INTO "User" ("id", "email", "passwordHash", "fullName", "role", "isActive", "createdAt", "updatedAt")
-VALUES (${lit(uuidv7())}, ${lit(email)}, '!', ${lit(fullName)}, 'ADMIN', 1, ${now}, ${now})
-ON CONFLICT ("email") DO UPDATE SET "role" = 'ADMIN';`);
+VALUES (${lit(uuidv7())}, ${lit(email)}, ${lit(passwordHash)}, ${lit(fullName)}, 'ADMIN', 1, ${now}, ${now})
+ON CONFLICT ("email") DO UPDATE SET "role" = 'ADMIN', "passwordHash" = excluded."passwordHash", "updatedAt" = ${now};`);
+  if (adminOnly) return sql.join('\n\n') + '\n';
 
   sql.push(`INSERT INTO "Topic" ("id", "name", "slug", "description", "createdById", "createdAt", "updatedAt")
 VALUES (${lit(uuidv7())}, 'PMP', 'pmp', 'Project Management Professional certification (PMI).', ${owner}, ${now}, ${now})
@@ -268,7 +286,7 @@ WHERE EXISTS (SELECT 1 FROM "ExamSection" WHERE "id" = ${lit(sectionId)});`);
 
 mkdirSync('.wrangler', { recursive: true });
 const file = '.wrangler/seed.sql';
-writeFileSync(file, buildSql());
+writeFileSync(file, await buildSql());
 execFileSync(
   'npx',
   [
@@ -284,5 +302,5 @@ execFileSync(
   { stdio: 'inherit' },
 );
 console.log(
-  `seeded ${remote ? 'remote' : 'local'} D1 (re-running skips what already exists)`,
+  `seeded ${remote ? 'remote' : 'local'} D1${adminOnly ? ' (admin account only)' : ''} (re-running skips what already exists)`,
 );

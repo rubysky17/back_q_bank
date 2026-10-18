@@ -70,7 +70,7 @@ export const users = sqliteTable(
     id: id(),
     /** Always stored lowercased. */
     email: text().notNull(),
-    /** Unused while the API runs in single-account mode ('!' placeholder). */
+    /** PBKDF2 hash, see src/auth/password.ts. Rows created before accounts existed hold '!' and cannot sign in until re-seeded. */
     passwordHash: text().notNull(),
     fullName: text().notNull(),
     role: text({ enum: ROLES }).notNull().default('USER'),

@@ -20,7 +20,8 @@ The Free plan allows **10 ms of CPU per request** (time spent waiting on D1 does
 npm run dev           # wrangler dev on http://localhost:8787/api/v1 (local D1 in .wrangler/, secrets from .env)
 npm run db:generate   # after editing src/db/schema.ts: writes drizzle/NNNN_*.sql
 npm run db:migrate    # apply migrations to local D1 (db:migrate:remote for production)
-npm run db:seed       # idempotent seed (the configured account + PMP sample exam)
+npm run db:seed       # idempotent seed (ADMIN account from ADMIN_EMAIL/ADMIN_PASSWORD + PMP sample exam)
+npm run db:admin      # only create the admin / reset its password (db:admin:remote for production)
 npm run check         # typecheck + lint + unit tests — run before declaring work done
 npm run test:e2e      # e2e on a fresh in-memory local D1 per file
 npm run cf:types      # after editing wrangler.jsonc
@@ -31,7 +32,7 @@ npm run cf:types      # after editing wrangler.jsonc
 - `src/index.ts`: the Worker entry. `src/app.ts` contains `createApp()`, with middleware, routes and the error handler.
 - `src/env.ts`: vars and secrets validated with zod, plus the Hono `AppEnv` type.
 - `src/db/schema.ts`: the schema and the source of truth for migrations. `src/db/client.ts`: `getDb()` and `batch()`. `src/db/errors.ts`: detects unique and foreign-key violations from D1 messages.
-- `src/auth/`: single-account login, sessions, refresh-token rotation, and the `requireAuth`, `requireRole` and `authRateLimit` middleware.
+- `src/auth/`: register/login, password hashing (`password.ts`), sessions, refresh-token rotation, and the `requireAuth`, `requireRole` and `authRateLimit` middleware.
 - `src/modules/<feature>/`: each has `routes.ts` (Hono) and `service.ts` (plain functions taking `(db, user, input)` plus their zod schemas). Features are topics, questions, exams (and `structure.ts`), catalog and attempts.
 - `src/modules/questions/question-types/`: one handler per question type. Register new ones in `index.ts`.
 - `src/lib/`:
@@ -53,13 +54,15 @@ npm run cf:types      # after editing wrangler.jsonc
   - Request bodies and queries use zod `strictObject` schemas through `parseBody` / `parseQuery`.
   - Use `zId()` for ids and `.nullish()` only for nullable columns.
   - Path ids go through `idParam(c, name)`.
-- **Auth (single-account mode):**
-  - Only `ADMIN_EMAIL` / `ADMIN_PASSWORD` can sign in. The account is upserted as ADMIN on login.
+- **Auth:**
+  - Accounts live in `User` with a PBKDF2 `passwordHash` (`src/auth/password.ts`). `POST /auth/register` always creates a `USER`; admins come from the seed script, hosts are promoted in the database.
+  - Password hashing is the most expensive thing a request does (~0.24 ms CPU per 1,000 iterations). Only register and login may hash; never add it to other routes. `PASSWORD_HASH_ITERATIONS` defaults to 25,000 for the Free plan.
+  - The Worker never reads `ADMIN_EMAIL` / `ADMIN_PASSWORD`; only `scripts/seed.ts` does.
   - Protect routes with `requireAuth` and restrict them with `requireRole('HOST', 'ADMIN')`.
   - Read the user from `c.var.user`; its role comes from the database on every request.
 - **Ownership:**
   - Use `ownedBy(table.ownerId, user)` in `where` and `assertOwner(record, user, 'Thing')`.
-  - Another host's private record returns 404, never 403. Keep these checks even though only one account exists today.
+  - Another host's private record returns 404, never 403.
 - **D1 specifics:**
   - **No interactive transactions.** Writes that must succeed together go in one `db.batch()` / `batch()`, with ids generated up front (`uuidv7()`).
   - **State changes are conditional updates.** Use `UPDATE … WHERE status = 'X' RETURNING` (or check `meta.changes`) instead of locks. See `finalize` and `saveAnswers` in `attempts/service.ts`.
@@ -76,4 +79,4 @@ npm run cf:types      # after editing wrangler.jsonc
 - **Data:** points and scores are integers, ids are UUIDv7 strings, and timestamps are Unix milliseconds (`Date` in code).
 - **Tests:**
   - Unit tests sit next to the file (`foo.spec.ts`).
-  - Cover new endpoints in `test/*.e2e-spec.ts`, including the authorization cases. Use `signInAs(ctx, Role.HOST)` to create extra users directly in the database.
+  - Cover new endpoints in `test/*.e2e-spec.ts`, including the authorization cases. Use `signInAs(ctx, Role.HOST)` to create extra users directly in the database, `signInAsAdmin(ctx)` / `createAccount(ctx, …)` when the test needs a real password.

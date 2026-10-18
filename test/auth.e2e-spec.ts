@@ -1,14 +1,22 @@
 import { eq } from 'drizzle-orm';
 
-import { sessions } from '../src/db/schema';
+import { sessions, users } from '../src/db/schema';
 import {
+  ADMIN,
+  createAccount,
   createTestContext,
   resetDatabase,
   signInAsAdmin,
   type TestContext,
 } from './helpers';
 
-describe('Auth — single-account mode (e2e)', () => {
+const newAccount = (label: string) => ({
+  email: `${label}@example.com`,
+  password: 'Customer-Pass-1',
+  fullName: `Customer ${label}`,
+});
+
+describe('Auth — email/password accounts (e2e)', () => {
   let ctx: TestContext;
 
   beforeAll(async () => {
@@ -20,53 +28,177 @@ describe('Auth — single-account mode (e2e)', () => {
     await ctx.close();
   });
 
+  describe('register', () => {
+    it('creates a USER account and signs it in', async () => {
+      const res = await ctx.api
+        .post('/auth/register')
+        .send({
+          ...newAccount('alice'),
+          email: '  Alice@Example.com ',
+          deviceId: 'device-1',
+          platform: 'IOS',
+        })
+        .expect(201);
+      expect(res.body.user).toMatchObject({
+        email: 'alice@example.com',
+        fullName: 'Customer alice',
+        role: 'USER',
+        isActive: true,
+      });
+      expect(res.body.user.passwordHash).toBeUndefined();
+      expect(typeof res.body.refreshToken).toBe('string');
+
+      const me = await ctx.api
+        .get('/auth/me', res.body.accessToken)
+        .expect(200);
+      expect(me.body.email).toBe('alice@example.com');
+
+      const [row] = await ctx.db
+        .select({ passwordHash: users.passwordHash })
+        .from(users)
+        .where(eq(users.email, 'alice@example.com'));
+      expect(row.passwordHash).toMatch(/^pbkdf2-sha256\$10000\$/);
+    });
+
+    it('lets the new account sign in with its password', async () => {
+      const account = newAccount('bob');
+      await ctx.api.post('/auth/register').send(account).expect(201);
+      const res = await ctx.api
+        .post('/auth/login')
+        .send({ email: account.email, password: account.password })
+        .expect(200);
+      expect(res.body.user).toMatchObject({
+        email: account.email,
+        role: 'USER',
+      });
+    });
+
+    it('refuses an email that already has an account, whatever its case', async () => {
+      await ctx.api
+        .post('/auth/register')
+        .send(newAccount('carol'))
+        .expect(201);
+      const res = await ctx.api
+        .post('/auth/register')
+        .send({ ...newAccount('carol'), email: 'CAROL@example.com' })
+        .expect(409);
+      expect(res.body).toMatchObject({
+        code: 'EMAIL_TAKEN',
+        message: 'An account with this email already exists',
+      });
+    });
+
+    it('validates the password length and the name, and never accepts a role', async () => {
+      const res = await ctx.api
+        .post('/auth/register')
+        .send({
+          email: 'dave@example.com',
+          password: 'short',
+          fullName: '   ',
+          role: 'ADMIN',
+        })
+        .expect(400);
+      expect(res.body.code).toBe('VALIDATION_ERROR');
+      const fields = res.body.details.map((d: { field: string }) => d.field);
+      expect(fields).toEqual(
+        expect.arrayContaining(['password', 'fullName', 'role']),
+      );
+    });
+
+    it('is rate limited per IP when the binding says so', async () => {
+      const limited = ctx.apiWith({
+        AUTH_LIMITER: { limit: async () => ({ success: false }) },
+      });
+      const res = await limited
+        .post('/auth/register')
+        .send(newAccount('erin'))
+        .expect(429);
+      expect(res.body.code).toBe('TOO_MANY_REQUESTS');
+    });
+  });
+
   describe('login', () => {
-    it('signs in the configured account as ADMIN and returns tokens', async () => {
+    it('signs in a seeded admin and returns tokens', async () => {
+      await createAccount(ctx, { ...ADMIN, role: 'ADMIN' });
       const res = await ctx.api
         .post('/auth/login')
         .send({
-          email: `  ${ctx.config.ADMIN_EMAIL.toUpperCase()} `,
-          password: ctx.config.ADMIN_PASSWORD,
+          email: `  ${ADMIN.email.toUpperCase()} `,
+          password: ADMIN.password,
           deviceId: 'device-1',
           platform: 'ANDROID',
         })
         .expect(200);
       expect(res.body.user).toMatchObject({
-        email: ctx.config.ADMIN_EMAIL,
-        fullName: 'Test Admin',
+        email: ADMIN.email,
+        fullName: ADMIN.fullName,
         role: 'ADMIN',
         isActive: true,
       });
       expect(res.body.user.passwordHash).toBeUndefined();
       expect(res.body.accessTokenExpiresIn).toBe(900);
       expect(typeof res.body.refreshToken).toBe('string');
-
-      const me = await ctx.api
-        .get('/auth/me', res.body.accessToken)
-        .expect(200);
-      expect(me.body.email).toBe(ctx.config.ADMIN_EMAIL);
-    });
-
-    it('reuses the same user row on every sign-in', async () => {
-      const first = await signInAsAdmin(ctx);
-      const second = await signInAsAdmin(ctx);
-      expect(second.id).toBe(first.id);
     });
 
     it('uses the same error for a wrong password and an unknown email', async () => {
+      await createAccount(ctx, { ...ADMIN, role: 'ADMIN' });
       const wrong = await ctx.api
         .post('/auth/login')
-        .send({ email: ctx.config.ADMIN_EMAIL, password: 'WrongPass123' })
+        .send({ email: ADMIN.email, password: 'WrongPass123' })
         .expect(401);
       const unknown = await ctx.api
         .post('/auth/login')
-        .send({
-          email: 'nobody@example.com',
-          password: ctx.config.ADMIN_PASSWORD,
-        })
+        .send({ email: 'nobody@example.com', password: ADMIN.password })
         .expect(401);
       expect(wrong.body.code).toBe('INVALID_CREDENTIALS');
       expect(unknown.body).toEqual(wrong.body);
+    });
+
+    it('never signs in a row without a real password hash', async () => {
+      await ctx.db.insert(users).values({
+        email: 'legacy@example.com',
+        fullName: 'Legacy',
+        passwordHash: '!',
+      });
+      const res = await ctx.api
+        .post('/auth/login')
+        .send({ email: 'legacy@example.com', password: '!' })
+        .expect(401);
+      expect(res.body.code).toBe('INVALID_CREDENTIALS');
+    });
+
+    it('refuses a disabled account', async () => {
+      const account = newAccount('frank');
+      await ctx.api.post('/auth/register').send(account).expect(201);
+      await ctx.db
+        .update(users)
+        .set({ isActive: false })
+        .where(eq(users.email, account.email));
+      const res = await ctx.api
+        .post('/auth/login')
+        .send({ email: account.email, password: account.password })
+        .expect(403);
+      expect(res.body.code).toBe('ACCOUNT_DISABLED');
+    });
+
+    it('upgrades an old hash to the configured cost on sign-in', async () => {
+      const account = newAccount('grace');
+      await ctx.api.post('/auth/register').send(account).expect(201);
+      const stronger = ctx.apiWith({ PASSWORD_HASH_ITERATIONS: '20000' });
+      await stronger
+        .post('/auth/login')
+        .send({ email: account.email, password: account.password })
+        .expect(200);
+      const [row] = await ctx.db
+        .select({ passwordHash: users.passwordHash })
+        .from(users)
+        .where(eq(users.email, account.email));
+      expect(row.passwordHash).toMatch(/^pbkdf2-sha256\$20000\$/);
+      // A lower configured cost never downgrades it, and it still verifies.
+      await ctx.api
+        .post('/auth/login')
+        .send({ email: account.email, password: account.password })
+        .expect(200);
     });
 
     it('returns validation errors as one string message plus details', async () => {
@@ -90,28 +222,13 @@ describe('Auth — single-account mode (e2e)', () => {
       });
     });
 
-    it('has no registration endpoint', async () => {
-      const res = await ctx.api
-        .post('/auth/register')
-        .send({
-          email: 'x@example.com',
-          password: 'Passw0rd!123',
-          fullName: 'X',
-        })
-        .expect(404);
-      expect(res.body.code).toBe('NOT_FOUND');
-    });
-
     it('is rate limited per IP when the binding says so', async () => {
       const limited = ctx.apiWith({
         AUTH_LIMITER: { limit: async () => ({ success: false }) },
       });
       const res = await limited
         .post('/auth/login')
-        .send({
-          email: ctx.config.ADMIN_EMAIL,
-          password: ctx.config.ADMIN_PASSWORD,
-        })
+        .send({ email: ADMIN.email, password: ADMIN.password })
         .expect(429);
       expect(res.body.code).toBe('TOO_MANY_REQUESTS');
     });
@@ -121,6 +238,20 @@ describe('Auth — single-account mode (e2e)', () => {
       expect(res.body.code).toBe('UNAUTHORIZED');
       const garbage = await ctx.api.get('/auth/me', 'garbage').expect(401);
       expect(garbage.body.code).toBe('TOKEN_INVALID');
+    });
+  });
+
+  describe('roles', () => {
+    it('keeps self-registered users out of authoring routes', async () => {
+      const res = await ctx.api
+        .post('/auth/register')
+        .send(newAccount('henry'))
+        .expect(201);
+      const denied = await ctx.api
+        .post('/topics', res.body.accessToken)
+        .send({ name: 'Not allowed' })
+        .expect(403);
+      expect(denied.body.code).toBe('FORBIDDEN');
     });
   });
 

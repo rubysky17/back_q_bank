@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { MAX_ITERATIONS, MIN_ITERATIONS } from './auth/password';
 import type { Db } from './db/client';
 import type { AuthUser } from './lib/access';
 
@@ -12,17 +13,18 @@ const commaList = z.string().transform((value) =>
 
 /** Worker vars + secrets, validated once per isolate. */
 export const configSchema = z.object({
-  /** The single account allowed to sign in (single-account mode). */
-  ADMIN_EMAIL: z.string().trim().toLowerCase().pipe(z.email()),
-  ADMIN_PASSWORD: z
-    .string()
-    .min(12, 'ADMIN_PASSWORD must be at least 12 characters'),
-  ADMIN_NAME: z.string().trim().min(1).default('Admin'),
   JWT_ACCESS_SECRET: z
     .string()
     .min(32, 'JWT_ACCESS_SECRET must be at least 32 characters'),
   JWT_ACCESS_TTL_SECONDS: z.coerce.number().int().min(60).default(900),
   REFRESH_TTL_DAYS: z.coerce.number().int().min(1).default(30),
+  /** PBKDF2 cost for new password hashes; see src/auth/password.ts for the CPU trade-off. */
+  PASSWORD_HASH_ITERATIONS: z.coerce
+    .number()
+    .int()
+    .min(MIN_ITERATIONS)
+    .max(MAX_ITERATIONS)
+    .default(25_000),
   /** Comma-separated browser origins (native mobile apps don't need CORS). */
   CORS_ORIGINS: commaList.default([]),
 });

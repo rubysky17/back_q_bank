@@ -8,7 +8,7 @@ Chạy trên **Cloudflare Workers gói Free ($0/tháng)**.
 |---|---|
 | Runtime | Cloudflare Workers (`nodejs_compat`), framework Hono 4 |
 | Database | Cloudflare D1 (SQLite), Drizzle ORM 0.45, migration bằng drizzle-kit |
-| Auth | **Chế độ 1 tài khoản**: email/mật khẩu lấy từ secrets. JWT access token 15 phút + refresh token xoay vòng |
+| Auth | Tài khoản email/mật khẩu trong bảng `User` (băm PBKDF2), khách tự đăng ký. JWT access token 15 phút + refresh token xoay vòng |
 | Validate | zod |
 | Test | Vitest. E2E chạy app thật trên D1 local, mỗi file test có DB riêng trong bộ nhớ |
 
@@ -20,9 +20,9 @@ Yêu cầu: Node ≥ 22. Không cần Docker: `wrangler dev` tự tạo D1 local
 
 ```bash
 npm install
-cp .env.example .env     # đặt ADMIN_EMAIL, ADMIN_PASSWORD (≥ 12 ký tự), JWT_ACCESS_SECRET (≥ 32 ký tự)
+cp .env.example .env     # đặt JWT_ACCESS_SECRET (≥ 32 ký tự) và tài khoản admin cho seed: ADMIN_EMAIL, ADMIN_PASSWORD (≥ 12 ký tự)
 npm run db:migrate       # tạo bảng trong D1 local
-npm run db:seed          # tài khoản + topic PMP + đề "PMP Mock Test 1"
+npm run db:seed          # tài khoản admin + topic PMP + đề "PMP Mock Test 1"
 npm run dev              # http://localhost:8787/api/v1
 ```
 
@@ -40,24 +40,33 @@ Làm một lần:
 ```bash
 npx wrangler login
 npx wrangler d1 create qbank          # dán database_id in ra vào wrangler.jsonc (d1_databases)
-npx wrangler secret put ADMIN_EMAIL
-npx wrangler secret put ADMIN_PASSWORD
 npx wrangler secret put JWT_ACCESS_SECRET
 npm run db:migrate:remote             # tạo bảng trên D1 production
-ADMIN_EMAIL='…' npm run db:seed:remote  # (tuỳ chọn) dữ liệu mẫu PMP
+ADMIN_EMAIL='…' ADMIN_PASSWORD='…' npm run db:admin:remote   # tạo tài khoản admin
+ADMIN_EMAIL='…' ADMIN_PASSWORD='…' npm run db:seed:remote    # (tuỳ chọn) admin + dữ liệu mẫu PMP
 ```
+
+Worker không đọc `ADMIN_EMAIL` / `ADMIN_PASSWORD`: hai biến này chỉ dùng cho script seed chạy trên máy bạn. Đừng đặt chúng thành secret hay variable của Worker.
 
 Sau đó commit và push. Workers Builds chạy `npm run build` (typecheck) rồi `npx wrangler deploy`.
 
 - **Migration không tự chạy khi deploy.** Đổi schema thì chạy `npm run db:migrate:remote` trước khi push. Nếu muốn tự động, đặt Deploy command trên dashboard thành `npm run db:migrate:remote && npx wrangler deploy`; build token khi đó cần quyền sửa D1.
 - **Xem CPU thật:** Dashboard → Workers & Pages → `back-q-bank` → Observability. Mỗi request có `cpuTime`; nên nằm dưới 10 ms.
 
-## Chế độ 1 tài khoản
+## Tài khoản
 
-Chưa có đăng ký hay băm mật khẩu. Chỉ một tài khoản đăng nhập được: `ADMIN_EMAIL` / `ADMIN_PASSWORD` trong secrets (local: `.env`).
-- Lần đăng nhập đầu tiên tự tạo user đó trong DB với role **ADMIN**, làm được mọi việc: soạn câu hỏi, soạn đề, làm bài.
-- Đổi mật khẩu bằng cách đặt lại secret. Đổi `ADMIN_EMAIL` sẽ tạo một user mới; dữ liệu của user cũ vẫn còn.
-- Role và quyền sở hữu (`USER` / `HOST` / `ADMIN`, ngân hàng câu hỏi riêng của từng host) vẫn được giữ trong code, để sau này mở lại nhiều tài khoản mà không phải sửa nghiệp vụ.
+Mỗi người có một tài khoản email/mật khẩu trong bảng `User`. Mật khẩu được băm bằng PBKDF2-SHA256 (WebCrypto, không cần thư viện).
+
+| Role | Tạo bằng cách | Làm được |
+|---|---|---|
+| `USER` | Khách tự đăng ký qua `POST /auth/register` | Xem đề đã publish, làm bài, xem kết quả của mình |
+| `HOST` | Đổi `role` của một user trong DB | Thêm: soạn câu hỏi, soạn đề trong ngân hàng riêng của mình |
+| `ADMIN` | `npm run db:admin` (hoặc `db:admin:remote`) với `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Mọi việc |
+
+- **Đổi mật khẩu admin:** chạy lại `db:admin` với `ADMIN_PASSWORD` mới. Lệnh này tạo admin nếu chưa có, nếu có rồi thì đặt lại mật khẩu.
+- **Khoá một tài khoản:** đặt `isActive = 0`. Phiên đang mở bị chặn ngay ở request kế tiếp.
+- **Chi phí CPU:** băm mật khẩu tốn khoảng 0,24 ms cho mỗi 1.000 vòng, chỉ khi đăng ký và đăng nhập. Mặc định `PASSWORD_HASH_ITERATIONS=25000` (khoảng 6 ms) để vừa giới hạn 10 ms của gói Free. Lên gói Paid thì nên tăng lên `100000` (mức tối đa WebCrypto của Workers cho phép). Số vòng được lưu trong từng hash, nên hash cũ tự được băm lại theo mức mới khi user đăng nhập.
+- **Dữ liệu cũ:** user tạo từ thời chỉ có một tài khoản có `passwordHash = '!'`, không đăng nhập được. Riêng admin thì chạy `db:admin` một lần là xong.
 
 ## Khái niệm
 
@@ -76,7 +85,8 @@ Chưa có đăng ký hay băm mật khẩu. Chỉ một tài khoản đăng nh�
 Token trả trong JSON body (không dùng cookie):
 
 ```jsonc
-// POST /auth/login  { email, password, deviceId?, deviceName?, platform?: "IOS" | "ANDROID" | "WEB" }
+// POST /auth/register { email, password (8–128 ký tự), fullName, deviceId?, deviceName?, platform? } → 201
+// POST /auth/login    { email, password, deviceId?, deviceName?, platform?: "IOS" | "ANDROID" | "WEB" } → 200
 {
   "user": { "id": "…", "email": "…", "fullName": "…", "role": "ADMIN", "isActive": true, "createdAt": "…" },
   "accessToken": "…",            // gửi kèm header Authorization: Bearer <accessToken>
@@ -98,7 +108,7 @@ Cách app nên xử lý:
 | Nhóm | Endpoint | Quyền |
 |---|---|---|
 | Health | `GET /health` | public |
-| Auth | `POST /auth/login`, `POST /auth/refresh` | public (có rate limit) |
+| Auth | `POST /auth/register`, `POST /auth/login`, `POST /auth/refresh` | public (có rate limit) |
 | | `POST /auth/logout`, `GET /auth/me` | đã đăng nhập |
 | Topic | `GET /topics`, `GET /topics/:id` | đã đăng nhập |
 | | `POST /topics`, `PATCH`/`DELETE /topics/:id`, `POST /topics/:topicId/domains`, `PATCH`/`DELETE /domains/:id` | HOST, ADMIN (chỉ người tạo được sửa/xóa) |
@@ -148,7 +158,7 @@ Mọi lỗi đều có dạng:
 `message` **luôn là một chuỗi**, có thể hiển thị thẳng cho người dùng. Lỗi validate có thêm `details: [{ field, messages[] }]`.
 
 Các `code` thường gặp:
-- **Validate và auth**: `VALIDATION_ERROR`, `BAD_REQUEST` (JSON hỏng, id sai định dạng), `INVALID_CREDENTIALS`, `UNAUTHORIZED`, `TOKEN_INVALID`, `SESSION_ENDED`, `REFRESH_TOKEN_INVALID`, `REFRESH_TOKEN_REUSED`, `ACCOUNT_DISABLED`, `TOO_MANY_REQUESTS`.
+- **Validate và auth**: `VALIDATION_ERROR`, `BAD_REQUEST` (JSON hỏng, id sai định dạng), `INVALID_CREDENTIALS`, `EMAIL_TAKEN`, `UNAUTHORIZED`, `TOKEN_INVALID`, `SESSION_ENDED`, `REFRESH_TOKEN_INVALID`, `REFRESH_TOKEN_REUSED`, `ACCOUNT_DISABLED`, `TOO_MANY_REQUESTS`.
 - **Tài nguyên**: `FORBIDDEN`, `NOT_FOUND`, `TOPIC_EXISTS`, `DOMAIN_EXISTS`, `TOPIC_IN_USE`, `DOMAIN_IN_USE`, `QUESTION_IN_USE`, `ALREADY_EXISTS`, `RESOURCE_IN_USE`.
 - **Câu hỏi**: `INVALID_QUESTION_DEFINITION`, `QUESTION_TYPE_NOT_SUPPORTED`, `DOMAIN_TOPIC_MISMATCH`.
 - **Soạn đề**: `EXAM_NOT_EDITABLE`, `EXAM_NOT_PUBLISHABLE`, `EXAM_HAS_ATTEMPTS`, `LAST_SECTION`, `QUESTIONS_NOT_FOUND`, `QUESTION_TOPIC_MISMATCH`, `QUESTION_ALREADY_IN_EXAM`, `INVALID_ORDER`.
@@ -195,7 +205,8 @@ CPU đo trong workerd local (cùng runtime với production, đã gồm phần p
 | `npm run test:e2e` | e2e: app thật trên D1 local, mỗi file một DB mới trong bộ nhớ |
 | `npm run db:generate` | tạo migration sau khi sửa `src/db/schema.ts` |
 | `npm run db:migrate` / `db:migrate:remote` | áp migration vào D1 local / production |
-| `npm run db:seed` / `db:seed:remote` | seed dữ liệu mẫu (chạy lại không tạo trùng) |
+| `npm run db:seed` / `db:seed:remote` | seed tài khoản admin + dữ liệu mẫu (chạy lại không tạo trùng) |
+| `npm run db:admin` / `db:admin:remote` | chỉ tạo admin hoặc đặt lại mật khẩu admin |
 | `npm run db:reset` | xóa D1 local, migrate và seed lại |
 | `npm run cf:types` | sinh lại `src/worker-configuration.d.ts` sau khi sửa `wrangler.jsonc` |
 | `npm run deploy` | deploy từ máy (bình thường để Workers Builds deploy khi push) |

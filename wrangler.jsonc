@@ -55,6 +55,6 @@
   },
   // Production: `npx wrangler secret put <NAME>`. Local: .env (see .env.example).
   "secrets": {
-    "required": ["ADMIN_EMAIL", "ADMIN_PASSWORD", "JWT_ACCESS_SECRET"],
+    "required": ["JWT_ACCESS_SECRET"],
   },
 }

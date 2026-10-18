@@ -2,19 +2,24 @@ import { eq } from 'drizzle-orm';
 import { Hono, type Context } from 'hono';
 import { z } from 'zod';
 
-import type { Db } from '../db/client';
+import { isUniqueViolation } from '../db/errors';
 import { PLATFORMS, users } from '../db/schema';
-import type { AppEnv, Config } from '../env';
+import type { AppEnv } from '../env';
 import { AppError } from '../lib/app-error';
 import { parseBody } from '../lib/validation';
 import { authRateLimit, requireAuth } from './middleware';
+import {
+  hashPassword,
+  needsRehash,
+  simulatePasswordCheck,
+  verifyPassword,
+} from './password';
 import {
   type ClientMeta,
   createSession,
   revokeSession,
   rotateSession,
 } from './sessions';
-import { sameSecret } from './tokens';
 
 export const userResponseColumns = {
   id: users.id,
@@ -34,9 +39,21 @@ const deviceFields = {
   platform: z.enum(PLATFORMS).optional(),
 };
 
+const email = z.string().trim().toLowerCase().pipe(z.email().max(254));
+
 const loginSchema = z.strictObject({
-  email: z.string().trim().toLowerCase().pipe(z.email().max(254)),
+  email,
   password: z.string().min(1).max(128),
+  ...deviceFields,
+});
+
+export const PASSWORD_MIN_LENGTH = 8;
+
+/** Self-service sign-up. The role is always USER; hosts and admins are promoted in the database. */
+const registerSchema = z.strictObject({
+  email,
+  password: z.string().min(PASSWORD_MIN_LENGTH).max(128),
+  fullName: z.string().trim().min(1).max(100),
   ...deviceFields,
 });
 
@@ -57,42 +74,38 @@ function clientMeta(c: Context): ClientMeta {
   };
 }
 
-/** The configured account's row, created on first sign-in. It is always an ADMIN. */
-async function upsertAdmin(db: Db, config: Config) {
-  const [user] = await db
-    .insert(users)
-    .values({
-      email: config.ADMIN_EMAIL,
-      fullName: config.ADMIN_NAME,
-      role: 'ADMIN',
-      passwordHash: '!',
-    })
-    .onConflictDoUpdate({ target: users.email, set: { role: 'ADMIN' } })
-    .returning(userResponseColumns);
-  return user;
-}
-
 /**
- * Single-account mode: the only credentials accepted are ADMIN_EMAIL / ADMIN_PASSWORD from the Worker's
- * secrets (no registration, no password hashing). Sessions and token rotation work as before.
+ * Email + password accounts stored in the User table (passwords hashed with PBKDF2, see password.ts).
+ * Anyone can register as USER; admins are created by the seed script.
  */
 export const authRoutes = new Hono<AppEnv>()
-  .post('/login', authRateLimit, async (c) => {
-    const input = await parseBody(c, loginSchema);
+  .post('/register', authRateLimit, async (c) => {
+    const input = await parseBody(c, registerSchema);
     const config = c.var.config;
-    // Compare both values every time so timing does not reveal which one was wrong.
-    const emailOk = sameSecret(input.email, config.ADMIN_EMAIL);
-    const passwordOk = sameSecret(input.password, config.ADMIN_PASSWORD);
-    if (!emailOk || !passwordOk) throw invalidCredentials();
-
     const db = c.var.db;
-    const user = await upsertAdmin(db, config);
-    if (!user.isActive) {
-      throw new AppError(
-        403,
-        'ACCOUNT_DISABLED',
-        'This account has been disabled',
-      );
+    const passwordHash = await hashPassword(
+      input.password,
+      config.PASSWORD_HASH_ITERATIONS,
+    );
+    let user;
+    try {
+      [user] = await db
+        .insert(users)
+        .values({
+          email: input.email,
+          fullName: input.fullName,
+          passwordHash,
+          role: 'USER',
+        })
+        .returning(userResponseColumns);
+    } catch (error) {
+      if (isUniqueViolation(error, 'User.email')) {
+        throw AppError.conflict(
+          'EMAIL_TAKEN',
+          'An account with this email already exists',
+        );
+      }
+      throw error;
     }
     const tokens = await createSession(
       db,
@@ -101,6 +114,49 @@ export const authRoutes = new Hono<AppEnv>()
       input,
       clientMeta(c),
     );
+    return c.json({ user, ...tokens }, 201);
+  })
+
+  .post('/login', authRateLimit, async (c) => {
+    const input = await parseBody(c, loginSchema);
+    const config = c.var.config;
+    const db = c.var.db;
+    const [account] = await db
+      .select({ ...userResponseColumns, passwordHash: users.passwordHash })
+      .from(users)
+      .where(eq(users.email, input.email))
+      .limit(1);
+    if (!account) {
+      // Same work as a real check so timing does not reveal which emails exist.
+      await simulatePasswordCheck(
+        input.password,
+        config.PASSWORD_HASH_ITERATIONS,
+      );
+      throw invalidCredentials();
+    }
+    const { passwordHash, ...user } = account;
+    if (!(await verifyPassword(input.password, passwordHash))) {
+      throw invalidCredentials();
+    }
+    if (!user.isActive) {
+      throw new AppError(
+        403,
+        'ACCOUNT_DISABLED',
+        'This account has been disabled',
+      );
+    }
+
+    const iterations = config.PASSWORD_HASH_ITERATIONS;
+    const rehash = needsRehash(passwordHash, iterations)
+      ? db
+          .update(users)
+          .set({ passwordHash: await hashPassword(input.password, iterations) })
+          .where(eq(users.id, user.id))
+      : undefined;
+    const [tokens] = await Promise.all([
+      createSession(db, config, user.id, input, clientMeta(c)),
+      rehash,
+    ]);
     return c.json({ user, ...tokens }, 200);
   })
 

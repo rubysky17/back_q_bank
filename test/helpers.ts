@@ -4,6 +4,7 @@ import { sql } from 'drizzle-orm';
 import { getPlatformProxy } from 'wrangler';
 
 import { API_PREFIX, createApp } from '../src/app';
+import { hashPassword } from '../src/auth/password';
 import { createSession } from '../src/auth/sessions';
 import { type Db, getDb } from '../src/db/client';
 import { type Role as RoleName, users } from '../src/db/schema';
@@ -49,12 +50,10 @@ async function applyMigrations(d1: D1Database) {
 function testEnv(d1: D1Database, overrides: Record<string, unknown> = {}): Env {
   return {
     DB: d1,
-    ADMIN_EMAIL: process.env.ADMIN_EMAIL,
-    ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
-    ADMIN_NAME: process.env.ADMIN_NAME,
     JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET,
     JWT_ACCESS_TTL_SECONDS: process.env.JWT_ACCESS_TTL_SECONDS,
     REFRESH_TTL_DAYS: process.env.REFRESH_TTL_DAYS,
+    PASSWORD_HASH_ITERATIONS: process.env.PASSWORD_HASH_ITERATIONS,
     CORS_ORIGINS: process.env.CORS_ORIGINS ?? '',
     ...overrides,
   } as unknown as Env;
@@ -192,18 +191,42 @@ export interface SignedIn {
   refreshToken: string;
 }
 
-/** Signs in with the configured single account through the API. */
+/** The admin account `signInAsAdmin` creates, as the seed script would. */
+export const ADMIN = {
+  email: 'admin@qbank.test',
+  password: 'Admin-Passw0rd-123',
+  fullName: 'Test Admin',
+} as const;
+
+/** Inserts a user with a real password hash (like the seed script), so it can sign in through the API. */
+export async function createAccount(
+  ctx: TestContext,
+  account: {
+    email: string;
+    password: string;
+    fullName: string;
+    role: RoleName;
+  },
+) {
+  const passwordHash = await hashPassword(
+    account.password,
+    ctx.config.PASSWORD_HASH_ITERATIONS,
+  );
+  await ctx.db
+    .insert(users)
+    .values({ ...account, passwordHash })
+    .onConflictDoNothing({ target: users.email });
+}
+
+/** Creates the admin account if needed, then signs in through the API. */
 export async function signInAsAdmin(
   ctx: TestContext,
   device: Record<string, unknown> = {},
 ): Promise<SignedIn> {
+  await createAccount(ctx, { ...ADMIN, role: 'ADMIN' });
   const res = await ctx.api
     .post('/auth/login')
-    .send({
-      email: ctx.config.ADMIN_EMAIL,
-      password: ctx.config.ADMIN_PASSWORD,
-      ...device,
-    })
+    .send({ email: ADMIN.email, password: ADMIN.password, ...device })
     .expect(200);
   return {
     id: res.body.user.id,
@@ -214,9 +237,8 @@ export async function signInAsAdmin(
 }
 
 /**
- * Creates another user with the given role directly in the database and opens a session for it.
- * The API only lets the configured account sign in, but ownership rules (hosts' private banks, users'
- * private attempts) are still enforced and tested with these extra users.
+ * Creates another user with the given role directly in the database and opens a session for it
+ * (no password: faster than going through /auth/login when a test only needs a token).
  */
 export async function signInAs(
   ctx: TestContext,
