@@ -56,7 +56,7 @@ npm run cf:types      # after editing wrangler.jsonc
   - Path ids go through `idParam(c, name)`.
 - **Auth:**
   - Accounts live in `User` with a PBKDF2 `passwordHash` (`src/auth/password.ts`). `POST /auth/register` always creates a `USER`; admins come from the seed script, hosts are promoted in the database.
-  - Password hashing is the most expensive thing a request does (~0.24 ms CPU per 1,000 iterations). Only register and login may hash; never add it to other routes. `PASSWORD_HASH_ITERATIONS` defaults to 25,000 for the Free plan.
+  - Password hashing is the most expensive thing a request does (~0.24 ms CPU per 1,000 iterations). At most one hash per request: only register, login, `POST /auth/reauth` (checks the password, returns a 5-minute `reauthToken`) and `POST /auth/change-password` (hashes the new one) hash. Other sensitive changes (`DELETE /auth/me`) take a `reauthToken` instead of the password. `PASSWORD_HASH_ITERATIONS` defaults to 25,000 for the Free plan.
   - The Worker never reads `ADMIN_EMAIL` / `ADMIN_PASSWORD`; only `scripts/seed.ts` does.
   - Protect routes with `requireAuth` and restrict them with `requireRole('HOST', 'ADMIN')`.
   - Read the user from `c.var.user`; its role comes from the database on every request.

@@ -16,6 +16,7 @@ import { catalogRoutes } from './modules/catalog/routes';
 import { examRoutes } from './modules/exams/routes';
 import { questionBankRoutes } from './modules/question-bank/routes';
 import { questionRoutes } from './modules/questions/routes';
+import { reportRoutes } from './modules/reports/routes';
 import { domainRoutes, topicRoutes } from './modules/topics/routes';
 
 export const API_PREFIX = '/api/v1';
@@ -99,7 +100,8 @@ export function createApp() {
     .route('/exams', examRoutes)
     .route('/catalog/exams', catalogRoutes)
     .route('/catalog/questions', questionBankRoutes)
-    .route('/attempts', attemptRoutes);
+    .route('/attempts', attemptRoutes)
+    .route('/reports', reportRoutes);
 
   const app = new Hono<AppEnv>();
   app.use(secureHeaders());

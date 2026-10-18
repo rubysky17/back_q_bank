@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, isNull, lt, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, isNull, lt, ne, or, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { batch, type Db } from '../../db/client';
@@ -32,6 +32,9 @@ import { type GradedItem, percentOf, summarize } from './grading';
 /** Answers are still accepted this long after `expiresAt` to absorb network latency. */
 export const ANSWER_GRACE_MS = 30_000;
 
+/** Longest stretch credited to one answer pick; anything longer is idle time. */
+export const MAX_ANSWER_TIME_MS = 10 * 60_000;
+
 /** Columns of the partial unique index "one in-progress attempt per user and exam". */
 const IN_PROGRESS_INDEX_COLUMNS = 'Attempt.userId, Attempt.examId';
 
@@ -64,8 +67,6 @@ export const startAttemptSchema = z.strictObject({
   fresh: z.boolean().optional(),
 });
 
-/** Longest time credited to one question per save (the app applies the same cap). */
-const MAX_DWELL_MS = 10 * 60_000;
 
 type ListAttemptsQuery = z.infer<typeof listAttemptsQuery>;
 type SaveAnswersInput = z.infer<typeof saveAnswersSchema>;
@@ -454,7 +455,7 @@ export async function saveAnswers(
   const changes = input.answers.flatMap((answer) => {
     const setResponse = answer.response !== undefined;
     const setFlag = answer.flagged !== undefined;
-    const addTime = Math.min(answer.timeSpentMs ?? 0, MAX_DWELL_MS);
+    const addTime = Math.min(answer.timeSpentMs ?? 0, MAX_ANSWER_TIME_MS);
     if (!setResponse && !setFlag && addTime === 0) return [];
     let response: unknown = null;
     if (answer.response) {
@@ -727,6 +728,40 @@ export async function findInProgress(db: Db, userId: string, examId: string) {
     return null;
   }
   return attempt;
+}
+
+/**
+ * Closes overdue attempts and grades closed ones that missed grading, so statistics see final scores.
+ * Capped per request because grading is the CPU-heavy part; callers still filter `score IS NOT NULL`,
+ * and anything skipped is settled by a later request.
+ */
+export async function settleClosedAttempts(
+  db: Db,
+  userId: string,
+  examIds?: readonly string[],
+  limit = 2,
+) {
+  const pending = await db
+    .select({ id: attempts.id, status: attempts.status })
+    .from(attempts)
+    .where(
+      and(
+        eq(attempts.userId, userId),
+        examIds ? inList(attempts.examId, examIds) : undefined,
+        or(
+          and(
+            eq(attempts.status, 'IN_PROGRESS'),
+            lt(attempts.expiresAt, new Date(Date.now() - ANSWER_GRACE_MS)),
+          ),
+          and(ne(attempts.status, 'IN_PROGRESS'), isNull(attempts.score)),
+        ),
+      ),
+    )
+    .limit(limit);
+  for (const { id, status } of pending) {
+    if (status === 'IN_PROGRESS') await finalize(db, id, 'EXPIRED');
+    else await grade(db, id);
+  }
 }
 
 /**

@@ -1,0 +1,1 @@
+CREATE INDEX `Attempt_userId_examId_startedAt_idx` ON `Attempt` (`userId`,`examId`,`startedAt`);

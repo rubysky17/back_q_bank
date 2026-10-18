@@ -323,6 +323,133 @@ describe('Auth — email/password accounts (e2e)', () => {
     });
   });
 
+  describe('account self-service', () => {
+    /** Registers a fresh USER and signs it in on a second device too. */
+    const twoDevices = async (label: string) => {
+      const account = newAccount(label);
+      const first = await ctx.api
+        .post('/auth/register')
+        .send({ ...account, deviceId: 'phone' })
+        .expect(201);
+      const second = await ctx.api
+        .post('/auth/login')
+        .send({
+          email: account.email,
+          password: account.password,
+          deviceId: 'tablet',
+        })
+        .expect(200);
+      return {
+        account,
+        token: first.body.accessToken as string,
+        otherToken: second.body.accessToken as string,
+      };
+    };
+    const reauth = async (token: string, password: string) =>
+      (await ctx.api.post('/auth/reauth', token).send({ password }).expect(200))
+        .body.reauthToken as string;
+
+    it('renames the account', async () => {
+      const { token } = await twoDevices('rename');
+      const res = await ctx.api
+        .patch('/auth/me', token)
+        .send({ fullName: '  Nguyễn Văn A ' })
+        .expect(200);
+      expect(res.body.fullName).toBe('Nguyễn Văn A');
+      await ctx.api
+        .patch('/auth/me', token)
+        .send({ fullName: ' ' })
+        .expect(400);
+      await ctx.api
+        .patch('/auth/me', token)
+        .send({ role: 'ADMIN' })
+        .expect(400);
+    });
+
+    it('confirms the password without signing out on a wrong one', async () => {
+      const { token } = await twoDevices('reauth');
+      const res = await ctx.api
+        .post('/auth/reauth', token)
+        .send({ password: 'wrong-password' })
+        .expect(400);
+      expect(res.body.code).toBe('WRONG_PASSWORD');
+      await ctx.api.get('/auth/me', token).expect(200);
+    });
+
+    it('changes the password with a fresh confirmation and signs out other devices', async () => {
+      const { account, token, otherToken } = await twoDevices('change');
+      const newPassword = 'Brand-New-Pass-2';
+
+      const missing = await ctx.api
+        .post('/auth/change-password', token)
+        .send({ reauthToken: 'nope', newPassword })
+        .expect(400);
+      expect(missing.body.code).toBe('REAUTH_REQUIRED');
+
+      // A confirmation from another device does not count here.
+      const foreign = await reauth(otherToken, account.password);
+      await ctx.api
+        .post('/auth/change-password', token)
+        .send({ reauthToken: foreign, newPassword })
+        .expect(400);
+
+      const reauthToken = await reauth(token, account.password);
+      await ctx.api
+        .post('/auth/change-password', token)
+        .send({ reauthToken, newPassword: 'short' })
+        .expect(400);
+      await ctx.api
+        .post('/auth/change-password', token)
+        .send({ reauthToken, newPassword })
+        .expect(204);
+
+      await ctx.api.get('/auth/me', token).expect(200);
+      await ctx.api.get('/auth/me', otherToken).expect(401);
+      await ctx.api
+        .post('/auth/login')
+        .send({ email: account.email, password: account.password })
+        .expect(401);
+      await ctx.api
+        .post('/auth/login')
+        .send({ email: account.email, password: newPassword })
+        .expect(200);
+    });
+
+    it('signs out every device', async () => {
+      const { token, otherToken } = await twoDevices('everywhere');
+      await ctx.api.post('/auth/logout-all', token).expect(204);
+      await ctx.api.get('/auth/me', token).expect(401);
+      await ctx.api.get('/auth/me', otherToken).expect(401);
+    });
+
+    it('deletes a student account with its sessions', async () => {
+      const { account, token, otherToken } = await twoDevices('delete');
+      await ctx.api
+        .delete('/auth/me', token)
+        .send({ reauthToken: 'nope' })
+        .expect(400);
+      const reauthToken = await reauth(token, account.password);
+      await ctx.api.delete('/auth/me', token).send({ reauthToken }).expect(204);
+
+      await ctx.api.get('/auth/me', otherToken).expect(401);
+      const rows = await ctx.db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.email, account.email));
+      expect(rows).toHaveLength(0);
+    });
+
+    it('never lets an admin delete their account', async () => {
+      const admin = await signInAsAdmin(ctx);
+      const reauthToken = await reauth(admin.token, ADMIN.password);
+      const res = await ctx.api
+        .delete('/auth/me', admin.token)
+        .send({ reauthToken })
+        .expect(403);
+      expect(res.body.code).toBe('ACCOUNT_NOT_DELETABLE');
+    });
+  });
+
   describe('platform', () => {
     it('reports health with a database round trip', async () => {
       const res = await ctx.api.get('/health').expect(200);

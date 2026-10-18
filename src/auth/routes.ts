@@ -1,9 +1,9 @@
-import { eq } from 'drizzle-orm';
+import { and, eq, isNull, ne } from 'drizzle-orm';
 import { Hono, type Context } from 'hono';
 import { z } from 'zod';
 
 import { isUniqueViolation } from '../db/errors';
-import { PLATFORMS, users } from '../db/schema';
+import { PLATFORMS, sessions, users } from '../db/schema';
 import type { AppEnv } from '../env';
 import { AppError } from '../lib/app-error';
 import { parseBody } from '../lib/validation';
@@ -14,6 +14,7 @@ import {
   simulatePasswordCheck,
   verifyPassword,
 } from './password';
+import { issueReauthToken, verifyReauthToken } from './reauth';
 import {
   type ClientMeta,
   createSession,
@@ -60,6 +61,23 @@ const registerSchema = z.strictObject({
 const refreshSchema = z.strictObject({
   refreshToken: z.string().min(1).max(512),
 });
+
+const profileSchema = z.strictObject({
+  fullName: z.string().trim().min(1).max(100),
+});
+
+const reauthSchema = z.strictObject({
+  password: z.string().min(1).max(128),
+});
+
+const reauthTokenField = { reauthToken: z.string().min(1).max(1024) };
+
+const changePasswordSchema = z.strictObject({
+  ...reauthTokenField,
+  newPassword: z.string().min(PASSWORD_MIN_LENGTH).max(128),
+});
+
+const deleteAccountSchema = z.strictObject(reauthTokenField);
 
 const invalidCredentials = () =>
   AppError.unauthorized(
@@ -190,4 +208,97 @@ export const authRoutes = new Hono<AppEnv>()
       .from(users)
       .where(eq(users.id, c.var.user.id));
     return c.json(user);
+  })
+
+  .patch('/me', requireAuth, async (c) => {
+    const { fullName } = await parseBody(c, profileSchema);
+    const [user] = await c.var.db
+      .update(users)
+      .set({ fullName })
+      .where(eq(users.id, c.var.user.id))
+      .returning(userResponseColumns);
+    return c.json(user);
+  })
+
+  /**
+   * Confirms the password before a sensitive change and returns a short-lived token for it. Split
+   * from those changes so that no request hashes twice (10 ms CPU budget, see AGENTS.md).
+   */
+  .post('/reauth', authRateLimit, requireAuth, async (c) => {
+    const { password } = await parseBody(c, reauthSchema);
+    const { id, sessionId } = c.var.user;
+    const [account] = await c.var.db
+      .select({ passwordHash: users.passwordHash })
+      .from(users)
+      .where(eq(users.id, id));
+    if (!account || !(await verifyPassword(password, account.passwordHash))) {
+      // Not 401: the client signs out on 401, and the session itself is fine.
+      throw AppError.badRequest('WRONG_PASSWORD', 'The password is incorrect');
+    }
+    return c.json(
+      await issueReauthToken(c.var.config, { userId: id, sessionId }),
+      200,
+    );
+  })
+
+  /** Sets a new password and signs out every other device. */
+  .post('/change-password', requireAuth, async (c) => {
+    const input = await parseBody(c, changePasswordSchema);
+    const { id, sessionId } = c.var.user;
+    await verifyReauthToken(c.var.config, input.reauthToken, {
+      userId: id,
+      sessionId,
+    });
+    const passwordHash = await hashPassword(
+      input.newPassword,
+      c.var.config.PASSWORD_HASH_ITERATIONS,
+    );
+    const db = c.var.db;
+    await db.batch([
+      db.update(users).set({ passwordHash }).where(eq(users.id, id)),
+      db
+        .update(sessions)
+        .set({ revokedAt: new Date() })
+        .where(
+          and(
+            eq(sessions.userId, id),
+            ne(sessions.id, sessionId),
+            isNull(sessions.revokedAt),
+          ),
+        ),
+    ]);
+    return c.body(null, 204);
+  })
+
+  /** Ends every session of the user, this device included. */
+  .post('/logout-all', requireAuth, async (c) => {
+    await c.var.db
+      .update(sessions)
+      .set({ revokedAt: new Date() })
+      .where(
+        and(eq(sessions.userId, c.var.user.id), isNull(sessions.revokedAt)),
+      );
+    return c.body(null, 204);
+  })
+
+  /**
+   * Deletes a student account with its sessions and attempts (FK cascade). Hosts and admins own
+   * shared content (topics, questions, exams), so they cannot delete themselves here.
+   */
+  .delete('/me', requireAuth, async (c) => {
+    const { reauthToken } = await parseBody(c, deleteAccountSchema);
+    const { id, sessionId, role } = c.var.user;
+    await verifyReauthToken(c.var.config, reauthToken, {
+      userId: id,
+      sessionId,
+    });
+    if (role !== 'USER') {
+      throw new AppError(
+        403,
+        'ACCOUNT_NOT_DELETABLE',
+        'Authors and admins cannot delete their account from the app',
+      );
+    }
+    await c.var.db.delete(users).where(eq(users.id, id));
+    return c.body(null, 204);
   });

@@ -3,7 +3,8 @@
  * - The ADMIN account (ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_NAME). Its password hash is (re)set on every
  *   run, so this is also how to change the admin password.
  * - Topic PMP with its 3 domains, 9 single-choice questions and a published 3-section mock exam
- *   (skipped with `--admin-only`)
+ * - A second, shorter published exam reusing 6 of those questions (so reports can compare exams)
+ *   (both exams are skipped with `--admin-only`)
  *
  * Builds one SQL file and runs it with `wrangler d1 execute`. Re-running skips what already exists.
  */
@@ -184,6 +185,9 @@ const QUESTIONS: {
 ];
 
 const EXAM_TITLE = 'PMP Mock Test 1';
+const EXAM_2_TITLE = 'PMP Mock Test 2';
+/** The MEDIUM and HARD question of each domain. */
+const EXAM_2_QUESTIONS = [0, 2, 3, 5, 6, 8];
 
 async function buildSql(): Promise<string> {
   const email = requireEnv('ADMIN_EMAIL').toLowerCase();
@@ -250,6 +254,27 @@ WHERE EXISTS (SELECT 1 FROM "Exam" WHERE "id" = ${lit(examId)});`);
 SELECT ${lit(uuidv7())}, ${lit(examId)}, ${lit(sectionId)}, ${lit(questionIds[offset + order - 1])}, ${index + 1}, 1, ${now}
 WHERE EXISTS (SELECT 1 FROM "ExamSection" WHERE "id" = ${lit(sectionId)});`);
     }
+  }
+
+  // Second exam: one section. Questions are found by content, since they may come from an earlier run.
+  const exam2Id = uuidv7();
+  const exam2SectionId = uuidv7();
+  const exam2Description =
+    'Short practice set: the medium and hard question of each domain.';
+  sql.push(`INSERT INTO "Exam" ("id", "ownerId", "topicId", "title", "searchText", "description", "status", "durationMinutes", "passingScore", "shuffleQuestions", "shuffleOptions", "publishedAt", "createdAt", "updatedAt")
+SELECT ${lit(exam2Id)}, ${owner}, ${topic}, ${lit(EXAM_2_TITLE)}, ${lit(searchKey(EXAM_2_TITLE))}, ${lit(exam2Description)},
+  'PUBLISHED', 10, 70, 1, 1, ${now}, ${now}, ${now}
+WHERE NOT EXISTS (SELECT 1 FROM "Exam" WHERE "title" = ${lit(EXAM_2_TITLE)} AND "ownerId" = ${owner});`);
+  sql.push(`INSERT INTO "ExamSection" ("id", "examId", "title", "order", "createdAt", "updatedAt")
+SELECT ${lit(exam2SectionId)}, ${lit(exam2Id)}, 'Section 1', 1, ${now}, ${now}
+WHERE EXISTS (SELECT 1 FROM "Exam" WHERE "id" = ${lit(exam2Id)});`);
+  for (const [index, questionIndex] of EXAM_2_QUESTIONS.entries()) {
+    const content = QUESTIONS[questionIndex]!.content;
+    sql.push(`INSERT INTO "ExamQuestion" ("id", "examId", "sectionId", "questionId", "order", "points", "createdAt")
+SELECT ${lit(uuidv7())}, ${lit(exam2Id)}, ${lit(exam2SectionId)},
+  (SELECT "id" FROM "Question" WHERE "ownerId" = ${owner} AND "topicId" = ${topic} AND "content" = ${lit(content)} LIMIT 1),
+  ${index + 1}, 1, ${now}
+WHERE EXISTS (SELECT 1 FROM "ExamSection" WHERE "id" = ${lit(exam2SectionId)});`);
   }
   return sql.join('\n\n') + '\n';
 }

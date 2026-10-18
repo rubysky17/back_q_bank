@@ -1,6 +1,7 @@
 import { eq } from 'drizzle-orm';
 
-import { attempts } from '../src/db/schema';
+import { attemptQuestions, attempts } from '../src/db/schema';
+import { MAX_ANSWER_TIME_MS } from '../src/modules/attempts/service';
 import {
   createTestContext,
   optionIds,
@@ -308,6 +309,50 @@ describe('Catalog & test taking (e2e)', () => {
       })
       .expect(200);
     expect(changed.body.answeredCount).toBe(2);
+  });
+
+  it('adds up the time spent on the question', async () => {
+    const q1 = questions[0];
+    const id = byContent.get(q1.content)!.id;
+    const pick = (timeSpentMs: unknown) =>
+      ctx.api.patch(`/attempts/${attemptId}/answers`, user.token).send({
+        answers: [
+          {
+            attemptQuestionId: id,
+            response: { optionId: optionIds(q1).correct },
+            timeSpentMs,
+          },
+        ],
+      });
+    const stored = async () => {
+      const [row] = await ctx.db
+        .select({ dwellMs: attemptQuestions.dwellMs })
+        .from(attemptQuestions)
+        .where(eq(attemptQuestions.id, id));
+      return row.dwellMs;
+    };
+
+    await pick(3000).expect(200);
+    await pick(2000).expect(200);
+    expect(await stored()).toBe(5000);
+
+    // Time on the question counts with any save, a flag change included.
+    await ctx.api
+      .patch(`/attempts/${attemptId}/answers`, user.token)
+      .send({
+        answers: [{ attemptQuestionId: id, flagged: false, timeSpentMs: 9000 }],
+      })
+      .expect(200);
+    expect(await stored()).toBe(14000);
+
+    for (const bad of [-1, 1.5, '100']) {
+      const res = await pick(bad).expect(400);
+      expect(res.body.code).toBe('VALIDATION_ERROR');
+    }
+
+    // A long pause is clamped, not rejected.
+    await pick(99_999_999).expect(200);
+    expect(await stored()).toBe(14000 + MAX_ANSWER_TIME_MS);
   });
 
   it('is not affected by host edits made after the attempt started', async () => {
