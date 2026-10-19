@@ -57,7 +57,7 @@
   ],
   // Non-secret settings; anything left out uses the defaults in src/env.ts.
   "vars": {
-    "CORS_ORIGINS": "",
+    "CORS_ORIGINS": "https://webqbank.web.app,https://webqbank.firebaseapp.com,http://localhost:5173",
   },
   // Production: `npx wrangler secret put <NAME>`. Local: .env (see .env.example).
   "secrets": {
