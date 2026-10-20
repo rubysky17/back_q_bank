@@ -54,6 +54,15 @@
         "period": 60,
       },
     },
+    // Vocabulary syncs per user (each one may translate up to 5 notes through the free Google/Microsoft endpoints).
+    {
+      "name": "VOCAB_LIMITER",
+      "namespace_id": "1002",
+      "simple": {
+        "limit": 30,
+        "period": 60,
+      },
+    },
   ],
   // Non-secret settings; anything left out uses the defaults in src/env.ts.
   "vars": {

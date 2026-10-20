@@ -48,6 +48,11 @@ ADMIN_EMAIL='…' ADMIN_PASSWORD='…' npm run db:seed:remote    # (tuỳ chọn
 
 Worker không đọc `ADMIN_EMAIL` / `ADMIN_PASSWORD`: hai biến này chỉ dùng cho script seed chạy trên máy bạn. Đừng đặt chúng thành secret hay variable của Worker.
 
+Dịch từ vựng **không cần API key**: Worker gọi các endpoint miễn phí mà trình dịch có sẵn của trình duyệt dùng (cùng cách với `translator_extension`). Google `translate_a/t` được thử lần lượt 3 biến thể (`translate.googleapis.com` với `client=gtx`, `client=dict-chrome-ex`, và `clients5.google.com`); khi Google từ chối thì chuyển sang trình dịch của Microsoft Edge. Biến thể bị chặn được nghỉ 15 giây, tăng dần tới 8 phút.
+- Đây không phải API chính thức: có thể bị giới hạn tần suất (429, trang "unusual traffic") hoặc đổi định dạng bất cứ lúc nào, và Worker gọi từ IP dùng chung của Cloudflare.
+- Từ và cụm từ đã dịch được cache dùng chung cho mọi user, nên mỗi từ chỉ gọi một lần.
+- Khi không endpoint nào trả lời, từ vựng vẫn lưu và đồng bộ bình thường; app hiện "Chưa dịch được, sẽ tự thử lại" và thử lại sau.
+
 Sau đó commit và push. Workers Builds chạy `npm run build` (typecheck) rồi `npx wrangler deploy`.
 
 - **Migration không tự chạy khi deploy.** Đổi schema thì chạy `npm run db:migrate:remote` trước khi push. Nếu muốn tự động, đặt Deploy command trên dashboard thành `npm run db:migrate:remote && npx wrangler deploy`; build token khi đó cần quyền sửa D1.
@@ -118,6 +123,7 @@ Cách app nên xử lý:
 | Câu hỏi trong đề | `POST /exams/:id/sections/:sectionId/questions`, `PUT /exams/:id/sections/:sectionId/questions/order`, `PATCH`/`DELETE /exams/:id/questions/:questionId` | như Exam |
 | Catalog | `GET /catalog/exams?topicId&q`, `GET /catalog/exams/:id`, `POST /catalog/exams/:id/attempts` (bắt đầu hoặc tiếp tục bài dở) | đã đăng nhập |
 | Làm bài | `GET /attempts`, `GET /attempts/:id`, `PATCH /attempts/:id/answers` (lưu nhiều câu một lần), `POST /attempts/:id/submit`, `GET /attempts/:id/result`, `GET /attempts/:id/review` | chủ bài làm |
+| Từ vựng | `POST /vocab/sync` (đẩy thay đổi và kéo phần mới, xem bên dưới) | đã đăng nhập (30 lần/phút) |
 
 Danh sách có phân trang `?page=1&limit=20` (tối đa 100) và trả về `{ items, total, page, limit }`. Tham số `q` tìm **không phân biệt hoa thường và dấu tiếng Việt**: `quan ly` khớp với "Quản lý".
 
@@ -140,6 +146,13 @@ Danh sách có phân trang `?page=1&limit=20` (tối đa 100) và trả về `{ 
 - `response: null` để xóa câu trả lời; bỏ trống field nào thì giữ nguyên giá trị cũ.
 - Bài có giới hạn thời gian: server vẫn nhận câu trả lời thêm 30 giây sau `expiresAt`. Quá thời gian đó, bài tự chấm với các câu đã lưu và chuyển `EXPIRED`.
 - Dùng `serverTime` trong response để đồng bộ đồng hồ đếm ngược.
+
+**Từ vựng** (`POST /vocab/sync`): app giữ bản sao riêng (dùng được offline) và đồng bộ bằng một endpoint duy nhất.
+- Body: `{ "cursor": { "rev": 12, "key": "baseline" } | null, "changes": [{ "key", "term", "meaning?", "partOfSpeech?", "explanation?", "context?", "sourceTitle?", "deleted", "createdAt", "updatedAt" }] }`, tối đa 50 thay đổi một lần. Thời gian tính bằng Unix ms theo đồng hồ thiết bị.
+- `key` là `termKey(term)` (`src/modules/vocab/term.ts`, file này giống hệt ở hai app). Mỗi user có một ghi chú cho mỗi key: ghi lại cùng một từ thì cập nhật dòng cũ, xoá là tombstone `deleted: true`.
+- Khi xung đột, thay đổi mới hơn thắng theo từng field, nhưng nghĩa, ngữ cảnh và nguồn đã có không bao giờ bị ghi đè bằng null.
+- Response: `{ items, cursor, hasMore, pending, maxRev, translateUnavailable, rejected, serverTime }`. Gửi lại `cursor` ở lần sau và gọi tiếp khi `hasMore`. `pending` là số ghi chú còn chờ dịch: mỗi request dịch tối đa 5 ghi chú trong một lần gọi (Google, dự phòng Microsoft), từ và cụm từ được cache dùng chung cho mọi user. `rejected` liệt kê thay đổi bị bỏ (`INVALID_TERM`) hoặc lưu dưới key khác (`REKEY`, kèm `newKey`).
+- Dịch hỏng 3 lần thì `translateFailed: true`. Gửi lại ghi chú (mới hơn, vẫn chưa có nghĩa) để yêu cầu dịch lại.
 
 **Luật soạn đề**:
 - Chỉ đề `DRAFT` mới sửa được. Muốn sửa đề đã publish thì unpublish trước.
@@ -174,6 +187,7 @@ Các `code` thường gặp:
 | D1 | 5 triệu dòng đọc/ngày, 100.000 dòng ghi/ngày, 500 MB/DB | |
 | Truy vấn D1 mỗi request | 50 | |
 | Tham số mỗi câu SQL | 100 | Danh sách dài phải đi qua `json_each` (xem AGENTS.md) |
+| Endpoint dịch miễn phí (Google, Microsoft) | Không công bố | Không chính thức, có thể bị giới hạn tần suất. Chỉ dùng để dịch từ vựng; thời gian chờ không tính CPU |
 
 CPU đo trong workerd local (cùng runtime với production, đã gồm phần phình do chế độ dev; số trên production thường thấp hơn):
 
@@ -183,6 +197,8 @@ CPU đo trong workerd local (cùng runtime với production, đã gồm phần p
 | Lưu 30 đáp án | khoảng 6 ms |
 | Bắt đầu làm bài, publish đề (30 câu) | khoảng 6,5–8 ms |
 | Lưu 120 đáp án trong một request | khoảng 16 ms. App nên lưu theo từng câu hoặc từng nhóm nhỏ |
+
+Đồng bộ từ vựng, đo bằng harness e2e (Node + D1 local, cùng cách đo này `/auth/me` hết 3,6 ms): sync rỗng khoảng 5 ms, đẩy 50 thay đổi khoảng 7,5 ms, kéo một trang 200 ghi chú khoảng 7 ms.
 
 Đề rất lớn (trên khoảng 100 câu) có thể đẩy request bắt đầu làm bài vượt 10 ms. Khi đó, các lựa chọn là chia đề nhỏ hơn hoặc lên gói Workers Paid ($5/tháng).
 

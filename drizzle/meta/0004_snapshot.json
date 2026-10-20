@@ -1,0 +1,2026 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "c7b8e6ea-a41a-40c7-aaad-5af6c7108af4",
+  "prevId": "5f79c718-8dcd-4524-9eb9-d092949e7a8b",
+  "tables": {
+    "AttemptEvent": {
+      "name": "AttemptEvent",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "attemptId": {
+          "name": "attemptId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "seq": {
+          "name": "seq",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "sectionOrder": {
+          "name": "sectionOrder",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "attemptQuestionId": {
+          "name": "attemptQuestionId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "payload": {
+          "name": "payload",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "activeMs": {
+          "name": "activeMs",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "clientAt": {
+          "name": "clientAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "receivedAt": {
+          "name": "receivedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "AttemptEvent_attemptId_seq_key": {
+          "name": "AttemptEvent_attemptId_seq_key",
+          "columns": [
+            "attemptId",
+            "seq"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "AttemptEvent_attemptId_fkey": {
+          "name": "AttemptEvent_attemptId_fkey",
+          "tableFrom": "AttemptEvent",
+          "tableTo": "Attempt",
+          "columnsFrom": [
+            "attemptId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "AttemptEvent_type_check": {
+          "name": "AttemptEvent_type_check",
+          "value": "\"type\" IN ('SECTION_START', 'SECTION_PAUSE', 'SECTION_RESUME', 'SECTION_REVIEW_OPEN', 'SECTION_END', 'BREAK_START', 'BREAK_SKIP', 'BREAK_END', 'QUESTION_VIEW', 'QUESTION_LEAVE', 'OPTION_ELIMINATE', 'OPTION_RESTORE', 'ANSWER_SELECT', 'ANSWER_CLEAR', 'CONFIDENCE_SET', 'FLAG_SET', 'ATTEMPT_SUBMIT', 'ATTEMPT_ABANDON')"
+        }
+      }
+    },
+    "AttemptQuestion": {
+      "name": "AttemptQuestion",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "attemptId": {
+          "name": "attemptId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "questionId": {
+          "name": "questionId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "questionVersion": {
+          "name": "questionVersion",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "sectionId": {
+          "name": "sectionId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "sectionTitle": {
+          "name": "sectionTitle",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "sectionOrder": {
+          "name": "sectionOrder",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "order": {
+          "name": "order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "points": {
+          "name": "points",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "snapshot": {
+          "name": "snapshot",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "response": {
+          "name": "response",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "isCorrect": {
+          "name": "isCorrect",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "score": {
+          "name": "score",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "flagged": {
+          "name": "flagged",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "answeredAt": {
+          "name": "answeredAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "confidence": {
+          "name": "confidence",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "eliminatedOptionIds": {
+          "name": "eliminatedOptionIds",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "firstResponse": {
+          "name": "firstResponse",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "dwellMs": {
+          "name": "dwellMs",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "timeToFirstAnswerMs": {
+          "name": "timeToFirstAnswerMs",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "timeToFinalAnswerMs": {
+          "name": "timeToFinalAnswerMs",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "visitCount": {
+          "name": "visitCount",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "answerChangeCount": {
+          "name": "answerChangeCount",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "eliminationCount": {
+          "name": "eliminationCount",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "everFlagged": {
+          "name": "everFlagged",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "AttemptQuestion_attemptId_order_key": {
+          "name": "AttemptQuestion_attemptId_order_key",
+          "columns": [
+            "attemptId",
+            "order"
+          ],
+          "isUnique": true
+        },
+        "AttemptQuestion_questionId_idx": {
+          "name": "AttemptQuestion_questionId_idx",
+          "columns": [
+            "questionId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "AttemptQuestion_attemptId_fkey": {
+          "name": "AttemptQuestion_attemptId_fkey",
+          "tableFrom": "AttemptQuestion",
+          "tableTo": "Attempt",
+          "columnsFrom": [
+            "attemptId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "AttemptQuestion_questionId_fkey": {
+          "name": "AttemptQuestion_questionId_fkey",
+          "tableFrom": "AttemptQuestion",
+          "tableTo": "Question",
+          "columnsFrom": [
+            "questionId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "AttemptQuestion_confidence_check": {
+          "name": "AttemptQuestion_confidence_check",
+          "value": "\"confidence\" IS NULL OR \"confidence\" IN ('LOW', 'MEDIUM', 'HIGH')"
+        }
+      }
+    },
+    "AttemptSection": {
+      "name": "AttemptSection",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "attemptId": {
+          "name": "attemptId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "sectionId": {
+          "name": "sectionId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "sectionOrder": {
+          "name": "sectionOrder",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "budgetMs": {
+          "name": "budgetMs",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "usedMs": {
+          "name": "usedMs",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'LOCKED'"
+        },
+        "startedAt": {
+          "name": "startedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "endedAt": {
+          "name": "endedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "endReason": {
+          "name": "endReason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "breakTakenMs": {
+          "name": "breakTakenMs",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "breakSkipped": {
+          "name": "breakSkipped",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "AttemptSection_attemptId_sectionOrder_key": {
+          "name": "AttemptSection_attemptId_sectionOrder_key",
+          "columns": [
+            "attemptId",
+            "sectionOrder"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "AttemptSection_attemptId_fkey": {
+          "name": "AttemptSection_attemptId_fkey",
+          "tableFrom": "AttemptSection",
+          "tableTo": "Attempt",
+          "columnsFrom": [
+            "attemptId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "AttemptSection_status_check": {
+          "name": "AttemptSection_status_check",
+          "value": "\"status\" IN ('LOCKED', 'ACTIVE', 'COMPLETED')"
+        },
+        "AttemptSection_endReason_check": {
+          "name": "AttemptSection_endReason_check",
+          "value": "\"endReason\" IS NULL OR \"endReason\" IN ('USER', 'TIME_UP')"
+        }
+      }
+    },
+    "Attempt": {
+      "name": "Attempt",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "examId": {
+          "name": "examId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "userId": {
+          "name": "userId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'IN_PROGRESS'"
+        },
+        "mode": {
+          "name": "mode",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'LEGACY'"
+        },
+        "phase": {
+          "name": "phase",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "currentSectionOrder": {
+          "name": "currentSectionOrder",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "syncedSeq": {
+          "name": "syncedSeq",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "examTitle": {
+          "name": "examTitle",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "passingScore": {
+          "name": "passingScore",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "breakMinutes": {
+          "name": "breakMinutes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "startedAt": {
+          "name": "startedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "expiresAt": {
+          "name": "expiresAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "submittedAt": {
+          "name": "submittedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "abandonedAt": {
+          "name": "abandonedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "score": {
+          "name": "score",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "maxScore": {
+          "name": "maxScore",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "correctCount": {
+          "name": "correctCount",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "totalQuestions": {
+          "name": "totalQuestions",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "passed": {
+          "name": "passed",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "Attempt_userId_startedAt_idx": {
+          "name": "Attempt_userId_startedAt_idx",
+          "columns": [
+            "userId",
+            "startedAt"
+          ],
+          "isUnique": false
+        },
+        "Attempt_examId_idx": {
+          "name": "Attempt_examId_idx",
+          "columns": [
+            "examId"
+          ],
+          "isUnique": false
+        },
+        "Attempt_userId_examId_startedAt_idx": {
+          "name": "Attempt_userId_examId_startedAt_idx",
+          "columns": [
+            "userId",
+            "examId",
+            "startedAt"
+          ],
+          "isUnique": false
+        },
+        "Attempt_one_in_progress_per_user_exam": {
+          "name": "Attempt_one_in_progress_per_user_exam",
+          "columns": [
+            "userId",
+            "examId"
+          ],
+          "isUnique": true,
+          "where": "\"status\" = 'IN_PROGRESS'"
+        }
+      },
+      "foreignKeys": {
+        "Attempt_examId_fkey": {
+          "name": "Attempt_examId_fkey",
+          "tableFrom": "Attempt",
+          "tableTo": "Exam",
+          "columnsFrom": [
+            "examId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "cascade"
+        },
+        "Attempt_userId_fkey": {
+          "name": "Attempt_userId_fkey",
+          "tableFrom": "Attempt",
+          "tableTo": "User",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "Attempt_status_check": {
+          "name": "Attempt_status_check",
+          "value": "\"status\" IN ('IN_PROGRESS', 'SUBMITTED', 'EXPIRED', 'ABANDONED')"
+        },
+        "Attempt_mode_check": {
+          "name": "Attempt_mode_check",
+          "value": "\"mode\" IN ('LEGACY', 'SECTIONED')"
+        },
+        "Attempt_phase_check": {
+          "name": "Attempt_phase_check",
+          "value": "\"phase\" IS NULL OR \"phase\" IN ('NOT_STARTED', 'IN_SECTION', 'IN_REVIEW', 'BREAK_OFFER', 'ON_BREAK', 'FINISHED')"
+        }
+      }
+    },
+    "CaseStudy": {
+      "name": "CaseStudy",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "topicId": {
+          "name": "topicId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "content": {
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "createdById": {
+          "name": "createdById",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "CaseStudy_topicId_idx": {
+          "name": "CaseStudy_topicId_idx",
+          "columns": [
+            "topicId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "CaseStudy_topicId_fkey": {
+          "name": "CaseStudy_topicId_fkey",
+          "tableFrom": "CaseStudy",
+          "tableTo": "Topic",
+          "columnsFrom": [
+            "topicId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "CaseStudy_createdById_fkey": {
+          "name": "CaseStudy_createdById_fkey",
+          "tableFrom": "CaseStudy",
+          "tableTo": "User",
+          "columnsFrom": [
+            "createdById"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "Domain": {
+      "name": "Domain",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "topicId": {
+          "name": "topicId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "order": {
+          "name": "order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "createdById": {
+          "name": "createdById",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "Domain_topicId_name_key": {
+          "name": "Domain_topicId_name_key",
+          "columns": [
+            "topicId",
+            "name"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "Domain_topicId_fkey": {
+          "name": "Domain_topicId_fkey",
+          "tableFrom": "Domain",
+          "tableTo": "Topic",
+          "columnsFrom": [
+            "topicId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "Domain_createdById_fkey": {
+          "name": "Domain_createdById_fkey",
+          "tableFrom": "Domain",
+          "tableTo": "User",
+          "columnsFrom": [
+            "createdById"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "ExamQuestion": {
+      "name": "ExamQuestion",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "examId": {
+          "name": "examId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "sectionId": {
+          "name": "sectionId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "questionId": {
+          "name": "questionId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "order": {
+          "name": "order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "points": {
+          "name": "points",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 1
+        },
+        "sourceNumber": {
+          "name": "sourceNumber",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "ExamQuestion_sectionId_order_idx": {
+          "name": "ExamQuestion_sectionId_order_idx",
+          "columns": [
+            "sectionId",
+            "order"
+          ],
+          "isUnique": false
+        },
+        "ExamQuestion_questionId_idx": {
+          "name": "ExamQuestion_questionId_idx",
+          "columns": [
+            "questionId"
+          ],
+          "isUnique": false
+        },
+        "ExamQuestion_examId_questionId_key": {
+          "name": "ExamQuestion_examId_questionId_key",
+          "columns": [
+            "examId",
+            "questionId"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "ExamQuestion_examId_fkey": {
+          "name": "ExamQuestion_examId_fkey",
+          "tableFrom": "ExamQuestion",
+          "tableTo": "Exam",
+          "columnsFrom": [
+            "examId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "ExamQuestion_sectionId_examId_fkey": {
+          "name": "ExamQuestion_sectionId_examId_fkey",
+          "tableFrom": "ExamQuestion",
+          "tableTo": "ExamSection",
+          "columnsFrom": [
+            "sectionId",
+            "examId"
+          ],
+          "columnsTo": [
+            "id",
+            "examId"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "ExamQuestion_questionId_fkey": {
+          "name": "ExamQuestion_questionId_fkey",
+          "tableFrom": "ExamQuestion",
+          "tableTo": "Question",
+          "columnsFrom": [
+            "questionId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "ExamSection": {
+      "name": "ExamSection",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "examId": {
+          "name": "examId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "order": {
+          "name": "order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "instructions": {
+          "name": "instructions",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "durationMinutes": {
+          "name": "durationMinutes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "ExamSection_examId_order_idx": {
+          "name": "ExamSection_examId_order_idx",
+          "columns": [
+            "examId",
+            "order"
+          ],
+          "isUnique": false
+        },
+        "ExamSection_id_examId_key": {
+          "name": "ExamSection_id_examId_key",
+          "columns": [
+            "id",
+            "examId"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "ExamSection_examId_fkey": {
+          "name": "ExamSection_examId_fkey",
+          "tableFrom": "ExamSection",
+          "tableTo": "Exam",
+          "columnsFrom": [
+            "examId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "Exam": {
+      "name": "Exam",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ownerId": {
+          "name": "ownerId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "topicId": {
+          "name": "topicId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "searchText": {
+          "name": "searchText",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'DRAFT'"
+        },
+        "durationMinutes": {
+          "name": "durationMinutes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "breakMinutes": {
+          "name": "breakMinutes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "passingScore": {
+          "name": "passingScore",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "shuffleQuestions": {
+          "name": "shuffleQuestions",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "shuffleOptions": {
+          "name": "shuffleOptions",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "publishedAt": {
+          "name": "publishedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "Exam_ownerId_idx": {
+          "name": "Exam_ownerId_idx",
+          "columns": [
+            "ownerId"
+          ],
+          "isUnique": false
+        },
+        "Exam_status_topicId_idx": {
+          "name": "Exam_status_topicId_idx",
+          "columns": [
+            "status",
+            "topicId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "Exam_ownerId_fkey": {
+          "name": "Exam_ownerId_fkey",
+          "tableFrom": "Exam",
+          "tableTo": "User",
+          "columnsFrom": [
+            "ownerId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "cascade"
+        },
+        "Exam_topicId_fkey": {
+          "name": "Exam_topicId_fkey",
+          "tableFrom": "Exam",
+          "tableTo": "Topic",
+          "columnsFrom": [
+            "topicId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "Exam_status_check": {
+          "name": "Exam_status_check",
+          "value": "\"status\" IN ('DRAFT', 'PUBLISHED', 'ARCHIVED')"
+        }
+      }
+    },
+    "Question": {
+      "name": "Question",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ownerId": {
+          "name": "ownerId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "topicId": {
+          "name": "topicId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "domainId": {
+          "name": "domainId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "caseStudyId": {
+          "name": "caseStudyId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'SINGLE_CHOICE'"
+        },
+        "difficulty": {
+          "name": "difficulty",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'MEDIUM'"
+        },
+        "content": {
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "searchText": {
+          "name": "searchText",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "explanation": {
+          "name": "explanation",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "media": {
+          "name": "media",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'[]'"
+        },
+        "definition": {
+          "name": "definition",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 1
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "Question_ownerId_topicId_idx": {
+          "name": "Question_ownerId_topicId_idx",
+          "columns": [
+            "ownerId",
+            "topicId"
+          ],
+          "isUnique": false
+        },
+        "Question_topicId_domainId_difficulty_idx": {
+          "name": "Question_topicId_domainId_difficulty_idx",
+          "columns": [
+            "topicId",
+            "domainId",
+            "difficulty"
+          ],
+          "isUnique": false
+        },
+        "Question_caseStudyId_idx": {
+          "name": "Question_caseStudyId_idx",
+          "columns": [
+            "caseStudyId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "Question_ownerId_fkey": {
+          "name": "Question_ownerId_fkey",
+          "tableFrom": "Question",
+          "tableTo": "User",
+          "columnsFrom": [
+            "ownerId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "cascade"
+        },
+        "Question_topicId_fkey": {
+          "name": "Question_topicId_fkey",
+          "tableFrom": "Question",
+          "tableTo": "Topic",
+          "columnsFrom": [
+            "topicId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "cascade"
+        },
+        "Question_domainId_fkey": {
+          "name": "Question_domainId_fkey",
+          "tableFrom": "Question",
+          "tableTo": "Domain",
+          "columnsFrom": [
+            "domainId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "cascade"
+        },
+        "Question_caseStudyId_fkey": {
+          "name": "Question_caseStudyId_fkey",
+          "tableFrom": "Question",
+          "tableTo": "CaseStudy",
+          "columnsFrom": [
+            "caseStudyId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "Question_type_check": {
+          "name": "Question_type_check",
+          "value": "\"type\" IN ('SINGLE_CHOICE', 'MULTIPLE_CHOICE', 'POINT_CHOICE', 'DRAG_DROP', 'CALCULATION')"
+        },
+        "Question_difficulty_check": {
+          "name": "Question_difficulty_check",
+          "value": "\"difficulty\" IN ('EASY', 'MEDIUM', 'HARD', 'EXPERT')"
+        }
+      }
+    },
+    "Session": {
+      "name": "Session",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "userId": {
+          "name": "userId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "secretHash": {
+          "name": "secretHash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "prevSecretHash": {
+          "name": "prevSecretHash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "rotatedAt": {
+          "name": "rotatedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "deviceId": {
+          "name": "deviceId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "deviceName": {
+          "name": "deviceName",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "platform": {
+          "name": "platform",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "userAgent": {
+          "name": "userAgent",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "ip": {
+          "name": "ip",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "expiresAt": {
+          "name": "expiresAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "revokedAt": {
+          "name": "revokedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "lastUsedAt": {
+          "name": "lastUsedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "Session_userId_deviceId_idx": {
+          "name": "Session_userId_deviceId_idx",
+          "columns": [
+            "userId",
+            "deviceId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "Session_userId_fkey": {
+          "name": "Session_userId_fkey",
+          "tableFrom": "Session",
+          "tableTo": "User",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "Session_platform_check": {
+          "name": "Session_platform_check",
+          "value": "\"platform\" IS NULL OR \"platform\" IN ('IOS', 'ANDROID', 'WEB')"
+        }
+      }
+    },
+    "TermTranslation": {
+      "name": "TermTranslation",
+      "columns": {
+        "termKey": {
+          "name": "termKey",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "meaning": {
+          "name": "meaning",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "partOfSpeech": {
+          "name": "partOfSpeech",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "explanation": {
+          "name": "explanation",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "model": {
+          "name": "model",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "Topic": {
+      "name": "Topic",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "slug": {
+          "name": "slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "createdById": {
+          "name": "createdById",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "Topic_slug_key": {
+          "name": "Topic_slug_key",
+          "columns": [
+            "slug"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "Topic_createdById_fkey": {
+          "name": "Topic_createdById_fkey",
+          "tableFrom": "Topic",
+          "tableTo": "User",
+          "columnsFrom": [
+            "createdById"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "User": {
+      "name": "User",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "passwordHash": {
+          "name": "passwordHash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "fullName": {
+          "name": "fullName",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "role": {
+          "name": "role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'USER'"
+        },
+        "isActive": {
+          "name": "isActive",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": true
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "User_email_key": {
+          "name": "User_email_key",
+          "columns": [
+            "email"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "User_role_check": {
+          "name": "User_role_check",
+          "value": "\"role\" IN ('USER', 'HOST', 'ADMIN')"
+        }
+      }
+    },
+    "VocabNote": {
+      "name": "VocabNote",
+      "columns": {
+        "userId": {
+          "name": "userId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "termKey": {
+          "name": "termKey",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "term": {
+          "name": "term",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "kind": {
+          "name": "kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "meaning": {
+          "name": "meaning",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "partOfSpeech": {
+          "name": "partOfSpeech",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "explanation": {
+          "name": "explanation",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "context": {
+          "name": "context",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "sourceTitle": {
+          "name": "sourceTitle",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "translateTries": {
+          "name": "translateTries",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "clientUpdatedAt": {
+          "name": "clientUpdatedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "rev": {
+          "name": "rev",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "deletedAt": {
+          "name": "deletedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "VocabNote_userId_rev_termKey_idx": {
+          "name": "VocabNote_userId_rev_termKey_idx",
+          "columns": [
+            "userId",
+            "rev",
+            "termKey"
+          ],
+          "isUnique": false
+        },
+        "VocabNote_pending_idx": {
+          "name": "VocabNote_pending_idx",
+          "columns": [
+            "userId",
+            "rev"
+          ],
+          "isUnique": false,
+          "where": "\"meaning\" IS NULL AND \"deletedAt\" IS NULL"
+        }
+      },
+      "foreignKeys": {
+        "VocabNote_userId_fkey": {
+          "name": "VocabNote_userId_fkey",
+          "tableFrom": "VocabNote",
+          "tableTo": "User",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {
+        "VocabNote_pkey": {
+          "columns": [
+            "userId",
+            "termKey"
+          ],
+          "name": "VocabNote_pkey"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "VocabNote_kind_check": {
+          "name": "VocabNote_kind_check",
+          "value": "\"kind\" IN ('WORD', 'PHRASE', 'SENTENCE')"
+        }
+      }
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {}
+  }
+}

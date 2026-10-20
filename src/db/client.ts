@@ -25,12 +25,18 @@ export function getDb(binding: D1Database): Db {
 type Statement = { toSQL(): Query } | { getQuery(): Query };
 
 /**
- * Runs write statements atomically in one D1 batch. Unlike `db.batch()`, it accepts raw SQL with
+ * Runs statements atomically in one D1 batch. Unlike `db.batch()`, it accepts raw SQL with
  * parameters (`db.run(sql`…`)`), which drizzle-orm 0.45's D1 batch cannot bind.
+ *
+ * Returns one raw D1 result per statement: rows of a SELECT (or `RETURNING`) are keyed by SQL
+ * column name, with timestamps as Unix ms and booleans as 0/1 (no Drizzle mapping).
  */
-export async function batch(db: Db, statements: Statement[]): Promise<void> {
+export async function batch(
+  db: Db,
+  statements: Statement[],
+): Promise<D1Result[]> {
   const client = db.$client;
-  await client.batch(
+  return client.batch(
     statements.map((statement) => {
       const { sql, params } =
         'getQuery' in statement ? statement.getQuery() : statement.toSQL();

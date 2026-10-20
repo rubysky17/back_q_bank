@@ -15,6 +15,7 @@ import {
   foreignKey,
   index,
   integer,
+  primaryKey,
   sqliteTable,
   text,
   uniqueIndex,
@@ -86,6 +87,9 @@ export const ATTEMPT_EVENT_TYPES = [
   'ATTEMPT_ABANDON',
 ] as const;
 
+/** What a vocabulary note holds, derived from its word count (see modules/vocab/term.ts). */
+export const VOCAB_KINDS = ['WORD', 'PHRASE', 'SENTENCE'] as const;
+
 export type Role = (typeof ROLES)[number];
 export type Platform = (typeof PLATFORMS)[number];
 export type QuestionType = (typeof QUESTION_TYPES)[number];
@@ -107,6 +111,7 @@ export type AttemptSectionStatus = (typeof ATTEMPT_SECTION_STATUSES)[number];
 export type SectionEndReason = (typeof SECTION_END_REASONS)[number];
 export type ConfidenceLevel = (typeof CONFIDENCE_LEVELS)[number];
 export type AttemptEventType = (typeof ATTEMPT_EVENT_TYPES)[number];
+export type VocabKind = (typeof VOCAB_KINDS)[number];
 
 const oneOf = (column: string, values: readonly string[]) =>
   sql.raw(`"${column}" IN (${values.map((value) => `'${value}'`).join(', ')})`);
@@ -660,3 +665,68 @@ export const attemptEvents = sqliteTable(
     check('AttemptEvent_type_check', oneOf('type', ATTEMPT_EVENT_TYPES)),
   ],
 );
+
+/**
+ * A word, phrase or sentence a user noted while reading questions, with its Vietnamese meaning.
+ * The apps keep their own copy and sync it with `POST /vocab/sync` (offline-first): a note is
+ * identified by `termKey`, deletes are tombstones (`deletedAt`) so other devices learn about them,
+ * and `rev` (per user, increasing) is the pull cursor.
+ */
+export const vocabNotes = sqliteTable(
+  'VocabNote',
+  {
+    userId: text().notNull(),
+    /** `termKey(term)`: normalised and lowercased in JS (SQLite's lower() is ASCII-only). */
+    termKey: text().notNull(),
+    term: text().notNull(),
+    kind: text({ enum: VOCAB_KINDS }).notNull(),
+    /** Null until translated (free Google/Microsoft endpoints), or typed by the user. */
+    meaning: text(),
+    partOfSpeech: text(),
+    explanation: text(),
+    /** The sentence the term was noted in: context for the translation and for the list. */
+    context: text(),
+    /** Exam (or practice) title where the term was noted. */
+    sourceTitle: text(),
+    /** Translations that came back unusable; the server stops trying at 3. */
+    translateTries: integer().notNull().default(0),
+    /** Device clock of the last change (clamped to the server clock): last write wins. */
+    clientUpdatedAt: timestamp().notNull(),
+    /** Bumped on every write to the row; pulls page through `(rev, termKey)`. */
+    rev: integer().notNull(),
+    deletedAt: timestamp(),
+    /** When the user first noted it, on their device. */
+    createdAt: timestamp().notNull(),
+    updatedAt: timestamp().notNull(),
+  },
+  (t) => [
+    primaryKey({ name: 'VocabNote_pkey', columns: [t.userId, t.termKey] }),
+    index('VocabNote_userId_rev_termKey_idx').on(t.userId, t.rev, t.termKey),
+    /** Notes still waiting for a translation. */
+    index('VocabNote_pending_idx')
+      .on(t.userId, t.rev)
+      .where(sql`"meaning" IS NULL AND "deletedAt" IS NULL`),
+    foreignKey({
+      name: 'VocabNote_userId_fkey',
+      columns: [t.userId],
+      foreignColumns: [users.id],
+    })
+      .onDelete('cascade')
+      .onUpdate('cascade'),
+    check('VocabNote_kind_check', oneOf('kind', VOCAB_KINDS)),
+  ],
+);
+
+/**
+ * Machine translations of words and phrases shared by every user, so a term is translated once.
+ * Sentences are never cached (they rarely repeat).
+ */
+export const termTranslations = sqliteTable('TermTranslation', {
+  termKey: text().primaryKey(),
+  meaning: text().notNull(),
+  partOfSpeech: text(),
+  explanation: text(),
+  /** Translation engine that produced it (`google` or `microsoft`, see modules/vocab/translator.ts). */
+  model: text().notNull(),
+  createdAt: createdAt(),
+});

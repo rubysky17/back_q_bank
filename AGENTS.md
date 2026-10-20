@@ -33,7 +33,8 @@ npm run cf:types      # after editing wrangler.jsonc
 - `src/env.ts`: vars and secrets validated with zod, plus the Hono `AppEnv` type.
 - `src/db/schema.ts`: the schema and the source of truth for migrations. `src/db/client.ts`: `getDb()` and `batch()`. `src/db/errors.ts`: detects unique and foreign-key violations from D1 messages.
 - `src/auth/`: register/login, password hashing (`password.ts`), sessions, refresh-token rotation, and the `requireAuth`, `requireRole` and `authRateLimit` middleware.
-- `src/modules/<feature>/`: each has `routes.ts` (Hono) and `service.ts` (plain functions taking `(db, user, input)` plus their zod schemas). Features are topics, questions, exams (and `structure.ts`), catalog and attempts.
+- `src/modules/<feature>/`: each has `routes.ts` (Hono) and `service.ts` (plain functions taking `(db, user, input)` plus their zod schemas). Features are topics, questions, exams (and `structure.ts`), catalog, attempts and vocab.
+- `src/modules/vocab/`: offline-first vocabulary notes (`POST /vocab/sync`) translated through the free key-less endpoints of the browsers' translators (`translator.ts`: Google `translate_a/t` in three variants, Microsoft Edge as fallback; same approach as `~/Source/translator_extension`). They are unofficial: variants that refuse cool down and the next one is tried. `term.ts` is the SAME FILE as `src/vocab/term.ts` in both apps (`termKey` must match everywhere): change the three together, with their tests.
 - `src/modules/questions/question-types/`: one handler per question type. Register new ones in `index.ts`.
 - `src/lib/`:
   - `app-error.ts`, `validation.ts`: `parseBody`, `parseQuery` and `idParam`, which produce `VALIDATION_ERROR`.
@@ -73,6 +74,10 @@ npm run cf:types      # after editing wrangler.jsonc
 - **Exams:**
   - Structure and settings change only in `DRAFT`, enforced by `findEditableExam`.
   - Added questions must share the exam's owner and topic.
+- **Vocabulary:**
+  - A note is `(userId, termKey)`. Deletes are tombstones; every write sets `rev = max(rev) + 1` inside SQL (the pull cursor is `(rev, termKey)`), including writes that lose last-write-wins, so the app always gets the winning state back.
+  - `batch()` returns the raw D1 results: rows are keyed by SQL column name, with timestamps as ms numbers.
+  - Translation: `Translator` (`translator.ts`) never throws. No answer from any engine (blocked, HTTP error, timeout) is `unavailable` and not counted; an empty translation counts toward the 3 tries. The vocab e2e spec stubs `fetch` for the Google and Microsoft URLs only (D1 must keep the real fetch); never let a test reach the real endpoints.
 - **Attempts:**
   - Questions are frozen into `AttemptQuestion.snapshot` when an attempt starts. Never read live `Question` data when grading or reviewing.
   - Closing an attempt (`finalize`) is a conditional update; grading runs after it and is idempotent. A closed attempt with `score = null` is graded by the next read.
