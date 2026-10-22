@@ -6,6 +6,7 @@ import {
   ATTEMPT_EVENT_TYPES,
   ATTEMPT_PHASES,
   ATTEMPT_SECTION_STATUSES,
+  attemptEvents,
   attemptQuestions,
   attemptSections,
   CONFIDENCE_LEVELS,
@@ -83,6 +84,16 @@ export const syncAttemptSchema = z.strictObject({
 
 type SyncAttemptInput = z.infer<typeof syncAttemptSchema>;
 
+/**
+ * Another device went on with the attempt since this one last synced: its copy is out of date. The
+ * app drops it and reloads the attempt from the server.
+ */
+export const continuedElsewhereError = () =>
+  AppError.conflict(
+    'ATTEMPT_CONTINUED_ELSEWHERE',
+    'This attempt was continued on another device',
+  );
+
 /** LOCKED < ACTIVE < COMPLETED: a section status never goes back. */
 const rank = (column: string) =>
   sql.raw(
@@ -97,6 +108,10 @@ const rank = (column: string) =>
  * - The state is applied only when it matches the stored events (`lastSeq === ackedSeq`), and never
  *   over a newer upload. Section clocks only move forward and never past their budget.
  * - A section closed by an earlier upload is final: later changes to its questions are ignored.
+ * - The attempt can move between devices (start on the computer, go on with the phone), but only
+ *   the copy that holds every stored event may write. A copy that is behind (`lastSeq` below
+ *   `syncedSeq`) or that recorded a different event at a stored seq is refused with
+ *   ATTEMPT_CONTINUED_ELSEWHERE instead of being skipped or applied over the newer one.
  *
  * The server cannot check time spent offline; these rules keep the data consistent, not cheat-proof.
  */
@@ -114,6 +129,25 @@ export async function syncAttempt(
     );
   }
   if (attempt.status !== 'IN_PROGRESS') throw closedError();
+
+  if (input.lastSeq < attempt.syncedSeq) throw continuedElsewhereError();
+  // Events already stored come back on a retry after a lost response. If the last of them is ours,
+  // so are the ones before it; a different id means both devices numbered events from the same seq.
+  const [resent] = input.events
+    .filter((event) => event.seq <= attempt.syncedSeq)
+    .sort((a, b) => b.seq - a.seq);
+  if (resent) {
+    const [stored] = await db
+      .select({ id: attemptEvents.id })
+      .from(attemptEvents)
+      .where(
+        and(
+          eq(attemptEvents.attemptId, attemptId),
+          eq(attemptEvents.seq, resent.seq),
+        ),
+      );
+    if (stored?.id !== resent.id) throw continuedElsewhereError();
+  }
 
   let ackedSeq = attempt.syncedSeq;
   const events: SyncAttemptInput['events'] = [];

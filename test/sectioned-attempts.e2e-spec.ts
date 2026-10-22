@@ -543,4 +543,107 @@ describe('Sectioned attempts: sync, abandon, fresh start (e2e)', () => {
       passed: false,
     });
   });
+
+  it('moves to another device and refuses the copy left behind', async () => {
+    const view = await start(user.token);
+    expect(view.resumed).toBe(false);
+    const q1 = byContent(view, 'S1 Q1');
+    const q2 = byContent(view, 'S1 Q2');
+    const first = optionIds(questions[0]);
+    const second = optionIds(questions[1]);
+    const sync = (body: Record<string, unknown>) =>
+      ctx.api
+        .post(`/attempts/${view.id}/sync`, user.token)
+        .send({
+          phase: 'IN_SECTION',
+          currentSectionOrder: 1,
+          sections: [],
+          ...body,
+        });
+
+    // Started on the computer.
+    await sync({
+      lastSeq: 2,
+      events: events(1, [
+        { type: 'SECTION_START' },
+        {
+          type: 'ANSWER_SELECT',
+          attemptQuestionId: q1.id,
+          payload: { optionId: first.correct },
+        },
+      ]),
+      questions: [trace(q1.id, first.correct)],
+    }).expect(200);
+
+    // Continued on the phone, from the server copy.
+    const onPhone = await ctx.api
+      .get(`/attempts/${view.id}`, user.token)
+      .expect(200);
+    expect(onPhone.body.syncedSeq).toBe(2);
+    const phoneEvents = events(3, [
+      { type: 'QUESTION_VIEW', attemptQuestionId: q2.id },
+      {
+        type: 'ANSWER_SELECT',
+        attemptQuestionId: q2.id,
+        payload: { optionId: second.correct },
+      },
+    ]);
+    await sync({
+      lastSeq: 4,
+      events: phoneEvents,
+      questions: [trace(q2.id, second.correct)],
+    }).expect(200);
+
+    // The computer's copy is behind: nothing new, a change made on it, or more events numbered from
+    // the same seq. None of them may land.
+    const behind = await sync({ lastSeq: 2, events: [], questions: [] }).expect(
+      409,
+    );
+    expect(behind.body.code).toBe('ATTEMPT_CONTINUED_ELSEWHERE');
+    await sync({
+      lastSeq: 3,
+      events: events(3, [
+        {
+          type: 'ANSWER_SELECT',
+          attemptQuestionId: q1.id,
+          payload: { optionId: first.wrong },
+        },
+      ]),
+      questions: [trace(q1.id, first.wrong), trace(q2.id, null)],
+    }).expect(409);
+    const forked = await sync({
+      lastSeq: 5,
+      events: events(3, [
+        { type: 'QUESTION_VIEW', attemptQuestionId: q1.id },
+        {
+          type: 'ANSWER_SELECT',
+          attemptQuestionId: q1.id,
+          payload: { optionId: first.wrong },
+        },
+        { type: 'QUESTION_LEAVE', attemptQuestionId: q1.id },
+      ]),
+      questions: [trace(q1.id, first.wrong), trace(q2.id, null)],
+    }).expect(409);
+    expect(forked.body.code).toBe('ATTEMPT_CONTINUED_ELSEWHERE');
+
+    // The phone still syncs, a retry of its own events included.
+    const more = await sync({
+      lastSeq: 5,
+      events: [
+        ...phoneEvents,
+        ...events(5, [{ type: 'QUESTION_LEAVE', attemptQuestionId: q2.id }]),
+      ],
+      questions: [],
+    }).expect(200);
+    expect(more.body).toMatchObject({ ackedSeq: 5, applied: true });
+
+    const state = await ctx.api
+      .get(`/attempts/${view.id}`, user.token)
+      .expect(200);
+    expect(state.body.syncedSeq).toBe(5);
+    const responseOf = (id: string) =>
+      state.body.questions.find((q: { id: string }) => q.id === id).response;
+    expect(responseOf(q1.id)).toEqual({ optionId: first.correct });
+    expect(responseOf(q2.id)).toEqual({ optionId: second.correct });
+  });
 });
