@@ -358,6 +358,9 @@ export async function syncAttempt(
     db.run(sql`
       UPDATE "Attempt" SET
         "syncedSeq" = ${ackedSeq},
+        -- Only new events count as a change: a device re-sending the same state every 30 s must not
+        -- make the other devices reload.
+        "updatedAt" = CASE WHEN ${ackedSeq} > "syncedSeq" THEN ${Date.now()} ELSE "updatedAt" END,
         "phase" = CASE WHEN ${applyState} THEN ${input.phase} ELSE "phase" END,
         "currentSectionOrder" = CASE WHEN ${applyState} THEN ${input.currentSectionOrder}
                                      ELSE "currentSectionOrder" END

@@ -355,6 +355,55 @@ describe('Catalog & test taking (e2e)', () => {
     expect(await stored()).toBe(14000 + MAX_ANSWER_TIME_MS);
   });
 
+  it('ignores a change queued offline that is older than the stored one', async () => {
+    const q3 = questions[2];
+    const id = byContent.get(q3.content)!.id;
+    const status = () =>
+      ctx.api
+        .get('/me/sync-status', user.token)
+        .expect(200)
+        .then((res) => res.body.attemptsUpdatedAt as number);
+    const before = await status();
+
+    await ctx.api
+      .patch(`/attempts/${attemptId}/answers`, user.token)
+      .send({
+        answers: [
+          {
+            attemptQuestionId: id,
+            response: null,
+            clientUpdatedAt: Date.now(),
+          },
+        ],
+      })
+      .expect(200);
+    // Other devices see that the attempt changed.
+    expect(await status()).toBeGreaterThanOrEqual(before);
+
+    const stale = await ctx.api
+      .patch(`/attempts/${attemptId}/answers`, user.token)
+      .send({
+        answers: [
+          {
+            attemptQuestionId: id,
+            response: { optionId: optionIds(q3).wrong },
+            flagged: true,
+            clientUpdatedAt: Date.now() - 60_000,
+          },
+        ],
+      })
+      .expect(200);
+    expect(stale.body.saved).toBe(1);
+    const [row] = await ctx.db
+      .select({
+        response: attemptQuestions.response,
+        flagged: attemptQuestions.flagged,
+      })
+      .from(attemptQuestions)
+      .where(eq(attemptQuestions.id, id));
+    expect(row).toEqual({ response: null, flagged: false });
+  });
+
   it('is not affected by host edits made after the attempt started', async () => {
     const q1 = questions[0];
     await ctx.api.post(`/exams/${examId}/unpublish`, host.token).expect(200);

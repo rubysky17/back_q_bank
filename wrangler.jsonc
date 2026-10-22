@@ -63,6 +63,15 @@
         "period": 60,
       },
     },
+    // Practice/settings syncs and sync-status polls per user (every open app polls every 20 s).
+    {
+      "name": "USER_STATE_LIMITER",
+      "namespace_id": "1003",
+      "simple": {
+        "limit": 60,
+        "period": 60,
+      },
+    },
   ],
   // Non-secret settings; anything left out uses the defaults in src/env.ts.
   "vars": {

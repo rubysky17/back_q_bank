@@ -89,6 +89,11 @@ export const ATTEMPT_EVENT_TYPES = [
 
 /** What a vocabulary note holds, derived from its word count (see modules/vocab/term.ts). */
 export const VOCAB_KINDS = ['WORD', 'PHRASE', 'SENTENCE'] as const;
+/**
+ * What a `UserItem` holds. PRACTICE: the answer picked on a question-bank question (key = the
+ * placement id). SETTING: an account setting shared by every device (key = setting name).
+ */
+export const USER_ITEM_KINDS = ['PRACTICE', 'SETTING'] as const;
 
 export type Role = (typeof ROLES)[number];
 export type Platform = (typeof PLATFORMS)[number];
@@ -112,6 +117,7 @@ export type SectionEndReason = (typeof SECTION_END_REASONS)[number];
 export type ConfidenceLevel = (typeof CONFIDENCE_LEVELS)[number];
 export type AttemptEventType = (typeof ATTEMPT_EVENT_TYPES)[number];
 export type VocabKind = (typeof VOCAB_KINDS)[number];
+export type UserItemKind = (typeof USER_ITEM_KINDS)[number];
 
 const oneOf = (column: string, values: readonly string[]) =>
   sql.raw(`"${column}" IN (${values.map((value) => `'${value}'`).join(', ')})`);
@@ -492,6 +498,13 @@ export const attempts = sqliteTable(
     correctCount: integer(),
     totalQuestions: integer().notNull(),
     passed: bool(),
+    /**
+     * Last change other devices should hear about (answers, events, closing, grading); null for
+     * attempts written before the column existed. Raw SQL updates must set it themselves.
+     */
+    updatedAt: timestamp()
+      .$defaultFn(() => new Date())
+      .$onUpdate(() => new Date()),
   },
   (t) => [
     index('Attempt_userId_startedAt_idx').on(t.userId, t.startedAt),
@@ -592,6 +605,11 @@ export const attemptQuestions = sqliteTable(
     score: integer(),
     flagged: bool().notNull().default(false),
     answeredAt: timestamp(),
+    /**
+     * LEGACY: device clock of the last saved change (clamped to the server clock). An upload queued
+     * offline that is older than what another device saved since is ignored.
+     */
+    clientUpdatedAt: timestamp(),
     /** Decision trace (SECTIONED attempts, computed by the app from its events). */
     confidence: text({ enum: CONFIDENCE_LEVELS }),
     /** Option ids the user crossed out, as they stood at the end. */
@@ -730,3 +748,42 @@ export const termTranslations = sqliteTable('TermTranslation', {
   model: text().notNull(),
   createdAt: createdAt(),
 });
+
+/**
+ * Small per-user records the apps keep offline and sync with `POST /me/sync`: practice answers on
+ * the question bank and account settings. Same model as `VocabNote`: last write wins on the device
+ * clock (`clientUpdatedAt`), deletes are tombstones, and `rev` (per user, increasing) is the pull
+ * cursor.
+ */
+export const userItems = sqliteTable(
+  'UserItem',
+  {
+    userId: text().notNull(),
+    kind: text({ enum: USER_ITEM_KINDS }).notNull(),
+    key: text().notNull(),
+    /** JSON validated per kind (see modules/user-state/service.ts); null once deleted. */
+    value: json(),
+    clientUpdatedAt: timestamp().notNull(),
+    rev: integer().notNull(),
+    deletedAt: timestamp(),
+    createdAt: timestamp().notNull(),
+    updatedAt: timestamp().notNull(),
+  },
+  (t) => [
+    primaryKey({ name: 'UserItem_pkey', columns: [t.userId, t.kind, t.key] }),
+    index('UserItem_userId_rev_kind_key_idx').on(
+      t.userId,
+      t.rev,
+      t.kind,
+      t.key,
+    ),
+    foreignKey({
+      name: 'UserItem_userId_fkey',
+      columns: [t.userId],
+      foreignColumns: [users.id],
+    })
+      .onDelete('cascade')
+      .onUpdate('cascade'),
+    check('UserItem_kind_check', oneOf('kind', USER_ITEM_KINDS)),
+  ],
+);

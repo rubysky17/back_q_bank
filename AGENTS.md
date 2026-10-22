@@ -35,6 +35,7 @@ npm run cf:types      # after editing wrangler.jsonc
 - `src/auth/`: register/login, password hashing (`password.ts`), sessions, refresh-token rotation, and the `requireAuth`, `requireRole` and `authRateLimit` middleware.
 - `src/modules/<feature>/`: each has `routes.ts` (Hono) and `service.ts` (plain functions taking `(db, user, input)` plus their zod schemas). Features are topics, questions, exams (and `structure.ts`), catalog, attempts and vocab.
 - `src/modules/vocab/`: offline-first vocabulary notes (`POST /vocab/sync`) translated through the free key-less endpoints of the browsers' translators (`translator.ts`: Google `translate_a/t` in three variants, Microsoft Edge as fallback; same approach as `~/Source/translator_extension`). They are unofficial: variants that refuse cool down and the next one is tried. `term.ts` is the SAME FILE as `src/vocab/term.ts` in both apps (`termKey` must match everywhere): change the three together, with their tests.
+- `src/modules/user-state/`: what the apps share between a user's devices besides attempts and vocabulary. `POST /me/sync` stores `UserItem` rows (`PRACTICE`: question-bank answers keyed by placement id; `SETTING`: `language`, `dailyGoal`, `reminder`) with the same rules as vocabulary (last write wins on `clientUpdatedAt`, tombstones, `rev` cursor). `GET /me/sync-status` returns change markers (`userStateRev`, `vocabRev`, `attemptsUpdatedAt`) the apps poll every 20 s: keep it one cheap query.
 - `src/modules/questions/question-types/`: one handler per question type. Register new ones in `index.ts`.
 - `src/lib/`:
   - `app-error.ts`, `validation.ts`: `parseBody`, `parseQuery` and `idParam`, which produce `VALIDATION_ERROR`.
@@ -81,6 +82,8 @@ npm run cf:types      # after editing wrangler.jsonc
 - **Attempts:**
   - Questions are frozen into `AttemptQuestion.snapshot` when an attempt starts. Never read live `Question` data when grading or reviewing.
   - Closing an attempt (`finalize`) is a conditional update; grading runs after it and is idempotent. A closed attempt with `score = null` is graded by the next read.
+  - `Attempt.updatedAt` tells other devices an attempt changed (`GET /me/sync-status`): builder updates set it; raw SQL must set it only on a real change (new events, saved answers), never on a sync that changes nothing, or idle devices would make each other reload.
+  - LEGACY answers carry the device's `clientUpdatedAt` (apps queue them offline): an older change than the stored one is ignored.
   - SECTIONED attempts (every section has `durationMinutes`) have no server deadline: the app keeps the section clocks, works offline and uploads events + state with `POST /attempts/:id/sync` (`attempts/sync.ts`). `PATCH /answers` is LEGACY only. ABANDONED attempts are graded but never pass or fail.
 - **Migrations that rebuild a parent table:** `DROP TABLE` fires FK actions (`ON DELETE CASCADE`) even with `defer_foreign_keys`, so drizzle-kit's generated rebuild silently empties the child tables. Copy the children aside and drop them first (see `drizzle/0002_sectioned_attempts.sql`), and check that the generated `INSERT … SELECT` only reads columns that already exist.
 - **Data:** points and scores are integers, ids are UUIDv7 strings, and timestamps are Unix milliseconds (`Date` in code).

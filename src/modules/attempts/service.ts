@@ -56,6 +56,11 @@ export const saveAnswersSchema = z.strictObject({
         flagged: z.boolean().optional(),
         /** Foreground time spent on the question since the last save; added to its total. */
         timeSpentMs: z.number().int().min(0).optional(),
+        /**
+         * Device clock of the change (an app that queued it offline). Older than what another
+         * device saved since: the response and flag are kept as they are.
+         */
+        clientUpdatedAt: z.number().int().min(0).optional(),
       }),
     )
     .min(1)
@@ -66,7 +71,6 @@ export const saveAnswersSchema = z.strictObject({
 export const startAttemptSchema = z.strictObject({
   fresh: z.boolean().optional(),
 });
-
 
 type ListAttemptsQuery = z.infer<typeof listAttemptsQuery>;
 type SaveAnswersInput = z.infer<typeof saveAnswersSchema>;
@@ -475,28 +479,41 @@ export async function saveAnswers(
         setFlag,
         flagged: answer.flagged ?? false,
         addTime,
+        // A clock in the future would win every later conflict.
+        clientUpdatedAt: Math.min(answer.clientUpdatedAt ?? now, now),
       },
     ];
   });
 
   if (changes.length > 0) {
     // One statement for the whole batch. The EXISTS guard makes it atomic with submit/expiry:
-    // once the attempt is closed, no answer can land after grading.
-    const updated = await db.run(sql`
-      UPDATE "AttemptQuestion" SET
-        "response" = CASE WHEN v.setResponse THEN v.response ELSE "AttemptQuestion"."response" END,
-        "answeredAt" = CASE WHEN v.setResponse THEN v.answeredAt ELSE "AttemptQuestion"."answeredAt" END,
-        "flagged" = CASE WHEN v.setFlag THEN v.flagged ELSE "AttemptQuestion"."flagged" END,
-        "dwellMs" = CASE WHEN v.addTime > 0 THEN coalesce("AttemptQuestion"."dwellMs", 0) + v.addTime
-                         ELSE "AttemptQuestion"."dwellMs" END
-      FROM (SELECT value ->> 'id' AS id, value ->> 'setResponse' AS setResponse,
-                   value ->> 'response' AS response, value ->> 'answeredAt' AS answeredAt,
-                   value ->> 'setFlag' AS setFlag, value ->> 'flagged' AS flagged,
-                   value ->> 'addTime' AS addTime
-            FROM json_each(${JSON.stringify(changes)})) AS v
-      WHERE "AttemptQuestion"."id" = v.id AND "AttemptQuestion"."attemptId" = ${attemptId}
-        AND EXISTS (SELECT 1 FROM "Attempt" WHERE "Attempt"."id" = ${attemptId}
-                    AND "Attempt"."status" = 'IN_PROGRESS')`);
+    // once the attempt is closed, no answer can land after grading. A change older than the stored
+    // one (queued offline while another device went on) still matches the row but changes nothing.
+    const newer = sql.raw(
+      `(v.clientUpdatedAt >= coalesce("AttemptQuestion"."clientUpdatedAt", 0))`,
+    );
+    const [updated] = await batch(db, [
+      db.run(sql`
+        UPDATE "AttemptQuestion" SET
+          "response" = CASE WHEN v.setResponse AND ${newer} THEN v.response ELSE "AttemptQuestion"."response" END,
+          "answeredAt" = CASE WHEN v.setResponse AND ${newer} THEN v.answeredAt ELSE "AttemptQuestion"."answeredAt" END,
+          "flagged" = CASE WHEN v.setFlag AND ${newer} THEN v.flagged ELSE "AttemptQuestion"."flagged" END,
+          "dwellMs" = CASE WHEN v.addTime > 0 THEN coalesce("AttemptQuestion"."dwellMs", 0) + v.addTime
+                           ELSE "AttemptQuestion"."dwellMs" END,
+          "clientUpdatedAt" = max(v.clientUpdatedAt, coalesce("AttemptQuestion"."clientUpdatedAt", 0))
+        FROM (SELECT value ->> 'id' AS id, value ->> 'setResponse' AS setResponse,
+                     value ->> 'response' AS response, value ->> 'answeredAt' AS answeredAt,
+                     value ->> 'setFlag' AS setFlag, value ->> 'flagged' AS flagged,
+                     value ->> 'addTime' AS addTime, value ->> 'clientUpdatedAt' AS clientUpdatedAt
+              FROM json_each(${JSON.stringify(changes)})) AS v
+        WHERE "AttemptQuestion"."id" = v.id AND "AttemptQuestion"."attemptId" = ${attemptId}
+          AND EXISTS (SELECT 1 FROM "Attempt" WHERE "Attempt"."id" = ${attemptId}
+                      AND "Attempt"."status" = 'IN_PROGRESS')`),
+      // Other devices poll `GET /me/sync-status` and reload the attempt when this moves.
+      db.run(sql`
+        UPDATE "Attempt" SET "updatedAt" = ${now}
+        WHERE "id" = ${attemptId} AND "status" = 'IN_PROGRESS'`),
+    ]);
     if (updated.meta.changes !== changes.length) throw closedError();
   }
 

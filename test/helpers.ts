@@ -165,6 +165,7 @@ function createApi(env: Env) {
 /** Empties every table (children first, so foreign keys never block). */
 export async function resetDatabase(db: Db) {
   const tables = [
+    'UserItem',
     'VocabNote',
     'TermTranslation',
     'AttemptEvent',

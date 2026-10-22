@@ -18,6 +18,7 @@ import { questionBankRoutes } from './modules/question-bank/routes';
 import { questionRoutes } from './modules/questions/routes';
 import { reportRoutes } from './modules/reports/routes';
 import { domainRoutes, topicRoutes } from './modules/topics/routes';
+import { userStateRoutes } from './modules/user-state/routes';
 import { vocabRoutes } from './modules/vocab/routes';
 
 export const API_PREFIX = '/api/v1';
@@ -103,7 +104,8 @@ export function createApp() {
     .route('/catalog/questions', questionBankRoutes)
     .route('/attempts', attemptRoutes)
     .route('/reports', reportRoutes)
-    .route('/vocab', vocabRoutes);
+    .route('/vocab', vocabRoutes)
+    .route('/me', userStateRoutes);
 
   const app = new Hono<AppEnv>();
   app.use(secureHeaders());
